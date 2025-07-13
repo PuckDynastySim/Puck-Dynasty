@@ -14,16 +14,471 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coaches: {
+        Row: {
+          created_at: string | null
+          defense_specialty: number | null
+          first_name: string
+          id: string
+          last_name: string
+          league_id: string
+          line_management: number | null
+          motivation: number | null
+          nationality: string | null
+          offense_specialty: number | null
+          penalty_kill_specialty: number | null
+          powerplay_specialty: number | null
+          team_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          defense_specialty?: number | null
+          first_name: string
+          id?: string
+          last_name: string
+          league_id: string
+          line_management?: number | null
+          motivation?: number | null
+          nationality?: string | null
+          offense_specialty?: number | null
+          penalty_kill_specialty?: number | null
+          powerplay_specialty?: number | null
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          defense_specialty?: number | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          league_id?: string
+          line_management?: number | null
+          motivation?: number | null
+          nationality?: string | null
+          offense_specialty?: number | null
+          penalty_kill_specialty?: number | null
+          powerplay_specialty?: number | null
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaches_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaches_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_periods: {
+        Row: {
+          away_goals: number | null
+          away_shots: number | null
+          created_at: string | null
+          game_id: string
+          home_goals: number | null
+          home_shots: number | null
+          id: string
+          period: number
+        }
+        Insert: {
+          away_goals?: number | null
+          away_shots?: number | null
+          created_at?: string | null
+          game_id: string
+          home_goals?: number | null
+          home_shots?: number | null
+          id?: string
+          period: number
+        }
+        Update: {
+          away_goals?: number | null
+          away_shots?: number | null
+          created_at?: string | null
+          game_id?: string
+          home_goals?: number | null
+          home_shots?: number | null
+          id?: string
+          period?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_periods_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          away_score: number | null
+          away_shots: number | null
+          away_team_id: string
+          created_at: string | null
+          game_date: string
+          game_time: string | null
+          home_score: number | null
+          home_shots: number | null
+          home_team_id: string
+          id: string
+          league_id: string
+          overtime_winner: string | null
+          shootout_winner: string | null
+          status: Database["public"]["Enums"]["game_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_shots?: number | null
+          away_team_id: string
+          created_at?: string | null
+          game_date: string
+          game_time?: string | null
+          home_score?: number | null
+          home_shots?: number | null
+          home_team_id: string
+          id?: string
+          league_id: string
+          overtime_winner?: string | null
+          shootout_winner?: string | null
+          status?: Database["public"]["Enums"]["game_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_shots?: number | null
+          away_team_id?: string
+          created_at?: string | null
+          game_date?: string
+          game_time?: string | null
+          home_score?: number | null
+          home_shots?: number | null
+          home_team_id?: string
+          id?: string
+          league_id?: string
+          overtime_winner?: string | null
+          shootout_winner?: string | null
+          status?: Database["public"]["Enums"]["game_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_away_team_id_fkey"
+            columns: ["away_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_home_team_id_fkey"
+            columns: ["home_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_overtime_winner_fkey"
+            columns: ["overtime_winner"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_shootout_winner_fkey"
+            columns: ["shootout_winner"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leagues: {
+        Row: {
+          commissioner_id: string | null
+          created_at: string | null
+          games_per_team: number | null
+          id: string
+          is_active: boolean | null
+          league_type: Database["public"]["Enums"]["league_type"]
+          max_age: number | null
+          min_age: number | null
+          name: string
+          salary_cap: number | null
+          season_start_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          commissioner_id?: string | null
+          created_at?: string | null
+          games_per_team?: number | null
+          id?: string
+          is_active?: boolean | null
+          league_type: Database["public"]["Enums"]["league_type"]
+          max_age?: number | null
+          min_age?: number | null
+          name: string
+          salary_cap?: number | null
+          season_start_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          commissioner_id?: string | null
+          created_at?: string | null
+          games_per_team?: number | null
+          id?: string
+          is_active?: boolean | null
+          league_type?: Database["public"]["Enums"]["league_type"]
+          max_age?: number | null
+          min_age?: number | null
+          name?: string
+          salary_cap?: number | null
+          season_start_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          age: number
+          aggressiveness: number | null
+          checking: number | null
+          created_at: string | null
+          defense: number | null
+          discipline: number | null
+          fatigue: number | null
+          fighting: number | null
+          first_name: string
+          flexibility: number | null
+          id: string
+          injury_resistance: number | null
+          last_name: string
+          league_id: string
+          movement: number | null
+          nationality: string | null
+          overall_rating: number | null
+          passing: number | null
+          player_position: Database["public"]["Enums"]["player_position"]
+          poise: number | null
+          puck_control: number | null
+          rebound_control: number | null
+          shooting: number | null
+          status: Database["public"]["Enums"]["player_status"] | null
+          team_id: string | null
+          updated_at: string | null
+          vision: number | null
+        }
+        Insert: {
+          age: number
+          aggressiveness?: number | null
+          checking?: number | null
+          created_at?: string | null
+          defense?: number | null
+          discipline?: number | null
+          fatigue?: number | null
+          fighting?: number | null
+          first_name: string
+          flexibility?: number | null
+          id?: string
+          injury_resistance?: number | null
+          last_name: string
+          league_id: string
+          movement?: number | null
+          nationality?: string | null
+          overall_rating?: number | null
+          passing?: number | null
+          player_position: Database["public"]["Enums"]["player_position"]
+          poise?: number | null
+          puck_control?: number | null
+          rebound_control?: number | null
+          shooting?: number | null
+          status?: Database["public"]["Enums"]["player_status"] | null
+          team_id?: string | null
+          updated_at?: string | null
+          vision?: number | null
+        }
+        Update: {
+          age?: number
+          aggressiveness?: number | null
+          checking?: number | null
+          created_at?: string | null
+          defense?: number | null
+          discipline?: number | null
+          fatigue?: number | null
+          fighting?: number | null
+          first_name?: string
+          flexibility?: number | null
+          id?: string
+          injury_resistance?: number | null
+          last_name?: string
+          league_id?: string
+          movement?: number | null
+          nationality?: string | null
+          overall_rating?: number | null
+          passing?: number | null
+          player_position?: Database["public"]["Enums"]["player_position"]
+          poise?: number | null
+          puck_control?: number | null
+          rebound_control?: number | null
+          shooting?: number | null
+          status?: Database["public"]["Enums"]["player_status"] | null
+          team_id?: string | null
+          updated_at?: string | null
+          vision?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          abbreviation: string
+          city: string
+          conference: string | null
+          created_at: string | null
+          division: string | null
+          gm_user_id: string | null
+          id: string
+          league_id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          abbreviation: string
+          city: string
+          conference?: string | null
+          created_at?: string | null
+          division?: string | null
+          gm_user_id?: string | null
+          id?: string
+          league_id: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          abbreviation?: string
+          city?: string
+          conference?: string | null
+          created_at?: string | null
+          division?: string | null
+          gm_user_id?: string | null
+          id?: string
+          league_id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_manage_league: {
+        Args: { _user_id: string; _league_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "commissioner" | "gm" | "user"
+      game_status: "scheduled" | "in_progress" | "completed" | "postponed"
+      league_type: "pro" | "farm" | "junior"
+      player_position: "C" | "LW" | "RW" | "D" | "G"
+      player_status: "active" | "injured" | "suspended" | "retired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +605,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "commissioner", "gm", "user"],
+      game_status: ["scheduled", "in_progress", "completed", "postponed"],
+      league_type: ["pro", "farm", "junior"],
+      player_position: ["C", "LW", "RW", "D", "G"],
+      player_status: ["active", "injured", "suspended", "retired"],
+    },
   },
 } as const

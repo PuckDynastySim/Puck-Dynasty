@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					hover: 'hsl(var(--primary-hover))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -61,7 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Hockey-themed colors
+				'ice-blue': 'hsl(var(--ice-blue))',
+				'rink-white': 'hsl(var(--rink-white))',
+				'puck-black': 'hsl(var(--puck-black))',
+				'team-red': 'hsl(var(--team-red))',
+				'team-gold': 'hsl(var(--team-gold))',
+				'penalty-orange': 'hsl(var(--penalty-orange))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
