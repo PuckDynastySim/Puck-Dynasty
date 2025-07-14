@@ -256,6 +256,84 @@ export type Database = {
         }
         Relationships: []
       }
+      player_contracts: {
+        Row: {
+          contract_length: number
+          contract_year: number
+          created_at: string
+          id: string
+          league_id: string
+          player_id: string
+          salary: number
+          signed_date: string
+          status: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          contract_length?: number
+          contract_year?: number
+          created_at?: string
+          id?: string
+          league_id: string
+          player_id: string
+          salary?: number
+          signed_date?: string
+          status?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          contract_length?: number
+          contract_year?: number
+          created_at?: string
+          id?: string
+          league_id?: string
+          player_id?: string
+          salary?: number
+          signed_date?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      player_injuries: {
+        Row: {
+          created_at: string
+          expected_return_date: string | null
+          id: string
+          injury_date: string
+          injury_type: string
+          is_active: boolean
+          player_id: string
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expected_return_date?: string | null
+          id?: string
+          injury_date?: string
+          injury_type: string
+          is_active?: boolean
+          player_id: string
+          severity?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expected_return_date?: string | null
+          id?: string
+          injury_date?: string
+          injury_type?: string
+          is_active?: boolean
+          player_id?: string
+          severity?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           age: number
@@ -388,6 +466,87 @@ export type Database = {
         }
         Relationships: []
       }
+      team_lines: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          line_order: number
+          line_type: string
+          player_id: string
+          position: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          line_order?: number
+          line_type: string
+          player_id: string
+          position: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          line_order?: number
+          line_type?: string
+          player_id?: string
+          position?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_strategy: {
+        Row: {
+          created_at: string
+          defensive_pressure: number
+          forecheck_intensity: number
+          id: string
+          league_id: string
+          line_matching: boolean
+          offensive_style: number
+          pk_style: string
+          pp_style: string
+          pull_goalie_threshold: number
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          defensive_pressure?: number
+          forecheck_intensity?: number
+          id?: string
+          league_id: string
+          line_matching?: boolean
+          offensive_style?: number
+          pk_style?: string
+          pp_style?: string
+          pull_goalie_threshold?: number
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          defensive_pressure?: number
+          forecheck_intensity?: number
+          id?: string
+          league_id?: string
+          line_matching?: boolean
+          offensive_style?: number
+          pk_style?: string
+          pp_style?: string
+          pull_goalie_threshold?: number
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       teams: {
         Row: {
           abbreviation: string
@@ -434,6 +593,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transaction_log: {
+        Row: {
+          created_at: string
+          from_team_id: string | null
+          id: string
+          league_id: string
+          player_id: string
+          processed_by_user_id: string | null
+          processed_date: string
+          to_team_id: string | null
+          transaction_details: Json | null
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          from_team_id?: string | null
+          id?: string
+          league_id: string
+          player_id: string
+          processed_by_user_id?: string | null
+          processed_date?: string
+          to_team_id?: string | null
+          transaction_details?: Json | null
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string
+          from_team_id?: string | null
+          id?: string
+          league_id?: string
+          player_id?: string
+          processed_by_user_id?: string | null
+          processed_date?: string
+          to_team_id?: string | null
+          transaction_details?: Json | null
+          transaction_type?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

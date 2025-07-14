@@ -6,8 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Calendar, BarChart3, Trophy, Clock, Zap } from "lucide-react";
+import { Users, Calendar, BarChart3, Trophy, Clock, Zap, AlertTriangle, DollarSign, Settings, LineChart } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import { RosterManagement } from "@/components/RosterManagement";
+import { LineBuilder } from "@/components/LineBuilder";
+import { TeamStrategy } from "@/components/TeamStrategy";
 
 type Team = Tables<"teams">;
 type Player = Tables<"players">;
@@ -294,58 +297,33 @@ const GMDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="roster" className="space-y-6">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="roster">Roster</TabsTrigger>
+            <TabsTrigger value="lines">Lines</TabsTrigger>
+            <TabsTrigger value="strategy">Strategy</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="roster" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Roster</CardTitle>
-                <CardDescription>
-                  Manage your team's players and lineup
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {players.map((player) => (
-                    <div 
-                      key={player.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <Badge className={getPositionColor(player.player_position)}>
-                          {player.player_position}
-                        </Badge>
-                        <div>
-                          <div className="font-medium">
-                            {player.first_name} {player.last_name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Age {player.age} • {player.nationality}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-lg font-bold ${getOverallRatingColor(player.overall_rating || 0)}`}>
-                          {player.overall_rating || 'N/A'}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Overall</div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {players.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Users className="mx-auto h-12 w-12 mb-4" />
-                      <p>No players assigned to this team yet.</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <RosterManagement 
+              teamId={team.id} 
+              leagueId={league?.id || ''} 
+            />
+          </TabsContent>
+
+          <TabsContent value="lines" className="space-y-6">
+            <LineBuilder 
+              teamId={team.id} 
+              leagueId={league?.id || ''} 
+            />
+          </TabsContent>
+
+          <TabsContent value="strategy" className="space-y-6">
+            <TeamStrategy 
+              teamId={team.id} 
+              leagueId={league?.id || ''} 
+            />
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-6">
