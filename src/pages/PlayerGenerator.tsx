@@ -142,7 +142,7 @@ const PlayerGenerator = () => {
     const variance = 15;
 
     const generateStat = (positionBonus = 0) => {
-      return Math.max(25, Math.min(95, baseRating + positionBonus + Math.floor(Math.random() * variance) - variance/2));
+      return Math.floor(Math.max(25, Math.min(95, baseRating + positionBonus + Math.floor(Math.random() * variance) - variance/2)));
     };
 
     let stats = {
