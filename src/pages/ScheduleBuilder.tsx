@@ -468,7 +468,7 @@ export default function ScheduleBuilder() {
                       <SelectValue placeholder="Select league" />
                     </SelectTrigger>
                     <SelectContent>
-                      {leagues.map(league => (
+                      {leagues.filter(league => league.id && league.id.trim()).map(league => (
                         <SelectItem key={league.id} value={league.id}>
                           {league.name}
                         </SelectItem>

@@ -337,7 +337,7 @@ export default function TeamManagement() {
                         <SelectValue placeholder="Select league" />
                       </SelectTrigger>
                       <SelectContent>
-                        {leagues.map(league => (
+                        {leagues.filter(league => league.id && league.id.trim()).map(league => (
                           <SelectItem key={league.id} value={league.id}>
                             <div className="flex items-center gap-2">
                               <Badge variant={league.league_type === 'pro' ? 'default' : league.league_type === 'farm' ? 'secondary' : 'outline'}>
@@ -419,7 +419,7 @@ export default function TeamManagement() {
                           <SelectValue placeholder="Select parent team" />
                         </SelectTrigger>
                         <SelectContent>
-                          {proTeams.map(team => (
+                          {proTeams.filter(team => team.id && team.id.trim()).map(team => (
                             <SelectItem key={team.id} value={team.id}>
                               {team.city} {team.name}
                             </SelectItem>

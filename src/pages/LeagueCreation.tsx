@@ -232,7 +232,7 @@ export default function LeagueCreation() {
                       <SelectValue placeholder="Select parent pro league" />
                     </SelectTrigger>
                     <SelectContent>
-                      {proLeagues.map((league) => (
+                      {proLeagues.filter(league => league.id && league.id.trim()).map((league) => (
                         <SelectItem key={league.id} value={league.id}>
                           {league.name}
                         </SelectItem>

@@ -185,7 +185,7 @@ const PlayerGenerator = () => {
           players.push({
             ...player,
             league_id: selectedLeague,
-            team_id: selectedTeam || null,
+            team_id: selectedTeam === 'free_agents' ? null : selectedTeam || null,
             status: 'active'
           });
           
@@ -266,7 +266,7 @@ const PlayerGenerator = () => {
                     <SelectValue placeholder="Select a league" />
                   </SelectTrigger>
                   <SelectContent>
-                    {leagues.map(league => (
+                    {leagues.filter(league => league.id && league.id.trim()).map(league => (
                       <SelectItem key={league.id} value={league.id}>
                         <div className="flex items-center gap-2">
                           <Badge variant={league.league_type === 'pro' ? 'default' : league.league_type === 'farm' ? 'secondary' : 'outline'}>
@@ -293,8 +293,8 @@ const PlayerGenerator = () => {
                     <SelectValue placeholder="Assign to specific team" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Free Agents</SelectItem>
-                    {teams.map(team => (
+                    <SelectItem value="free_agents">Free Agents</SelectItem>
+                    {teams.filter(team => team.id && team.id.trim()).map(team => (
                       <SelectItem key={team.id} value={team.id}>
                         <div className="flex items-center gap-2">
                           {team.is_ai_controlled && (
