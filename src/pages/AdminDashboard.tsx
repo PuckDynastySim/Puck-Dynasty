@@ -19,6 +19,7 @@ import {
 import { AdminLayout } from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hockey-arena-hero.jpg";
 
 interface DashboardStats {
@@ -54,6 +55,7 @@ export default function AdminDashboard() {
   const [leaguePhase, setLeaguePhase] = useState("Pre-Season");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadDashboardData();
@@ -242,11 +244,18 @@ export default function AdminDashboard() {
                   teams, players, and real-time game simulations.
                 </p>
                 <div className="flex gap-3">
-                  <Button className="btn-hockey">
+                  <Button 
+                    className="btn-hockey"
+                    onClick={() => navigate('/admin/leagues/new')}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Create New League
                   </Button>
-                  <Button variant="outline" className="border-primary/20">
+                  <Button 
+                    variant="outline" 
+                    className="border-primary/20"
+                    onClick={() => navigate('/admin/simulation')}
+                  >
                     <Play className="w-4 h-4 mr-2" />
                     Run Simulation
                   </Button>
@@ -288,7 +297,18 @@ export default function AdminDashboard() {
                           <span className="text-sm">{alert.message}</span>
                         </div>
                         {alert.action && (
-                          <Button size="sm" variant="outline" className="text-xs">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs"
+                            onClick={() => {
+                              if (alert.action === 'Assign GMs') {
+                                navigate('/admin/users');
+                              } else if (alert.action === 'Generate Players') {
+                                navigate('/admin/players/generate');
+                              }
+                            }}
+                          >
                             {alert.action}
                           </Button>
                         )}
@@ -365,7 +385,11 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {quickActions.map((action, index) => (
-              <Card key={index} className="card-rink stat-card cursor-pointer group">
+              <Card 
+                key={index} 
+                className="card-rink stat-card cursor-pointer group"
+                onClick={() => navigate(action.href)}
+              >
                 <CardHeader className="text-center">
                   <div className={`w-12 h-12 ${action.color} rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
                     <action.icon className="w-6 h-6 text-white" />

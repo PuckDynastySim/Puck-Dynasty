@@ -11,6 +11,8 @@ import LeagueCreation from "./pages/LeagueCreation";
 import UserManagement from "./pages/UserManagement";
 import TeamManagement from "./pages/TeamManagement";
 import PlayerGenerator from "./pages/PlayerGenerator";
+import CoachGenerator from "./pages/CoachGenerator";
+import Reports from "./pages/Reports";
 import ScheduleBuilder from "./pages/ScheduleBuilder";
 import SimulationEngine from "./pages/SimulationEngine";
 import GMDashboard from "./pages/GMDashboard";
@@ -54,17 +56,22 @@ const App = () => (
                 <PlayerGenerator />
               </ProtectedRoute>
             } />
+            <Route path="/admin/coaches" element={
+              <ProtectedRoute>
+                <CoachGenerator />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/schedule/builder" element={
               <ProtectedRoute>
                 <ScheduleBuilder />
               </ProtectedRoute>
             } />
             <Route path="/admin/simulation" element={
-              <ProtectedRoute>
-                <SimulationEngine />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/simulation/engine" element={
               <ProtectedRoute>
                 <SimulationEngine />
               </ProtectedRoute>
