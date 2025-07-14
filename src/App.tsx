@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import AdminDashboard from "./pages/AdminDashboard";
 import LeagueCreation from "./pages/LeagueCreation";
+import UserManagement from "./pages/UserManagement";
+import TeamManagement from "./pages/TeamManagement";
 import PlayerGenerator from "./pages/PlayerGenerator";
 import ScheduleBuilder from "./pages/ScheduleBuilder";
 import SimulationEngine from "./pages/SimulationEngine";
@@ -35,6 +37,16 @@ const App = () => (
             <Route path="/admin/leagues/new" element={
               <ProtectedRoute>
                 <LeagueCreation />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute>
+                <UserManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/teams" element={
+              <ProtectedRoute>
+                <TeamManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/players/generate" element={

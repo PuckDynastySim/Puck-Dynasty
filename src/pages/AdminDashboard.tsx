@@ -10,9 +10,15 @@ import {
   Plus,
   TrendingUp,
   Activity,
-  Clock
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  RefreshCw,
+  Zap
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hockey-arena-hero.jpg";
 
 interface DashboardStats {
@@ -22,6 +28,15 @@ interface DashboardStats {
   totalGames: number;
   gamesSimulatedToday: number;
   activeUsers: number;
+  teamsWithoutGMs: number;
+  incompleteTeams: number;
+}
+
+interface Alert {
+  id: string;
+  type: 'warning' | 'info' | 'error';
+  message: string;
+  action?: string;
 }
 
 export default function AdminDashboard() {
@@ -32,37 +47,143 @@ export default function AdminDashboard() {
     totalGames: 0,
     gamesSimulatedToday: 0,
     activeUsers: 0,
+    teamsWithoutGMs: 0,
+    incompleteTeams: 0,
   });
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [leaguePhase, setLeaguePhase] = useState("Pre-Season");
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      // Load leagues
+      const { data: leagues } = await supabase
+        .from('leagues')
+        .select('*')
+        .eq('is_active', true);
+
+      // Load teams
+      const { data: teams } = await supabase
+        .from('teams')
+        .select('*, profiles:gm_user_id(display_name)');
+
+      // Load players
+      const { data: players } = await supabase
+        .from('players')
+        .select('id, team_id');
+
+      // Load games
+      const { data: games } = await supabase
+        .from('games')
+        .select('*');
+
+      // Load user profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*');
+
+      const teamsWithoutGMs = teams?.filter(team => !team.gm_user_id).length || 0;
+      const incompleteTeams = teams?.filter(team => {
+        const playerCount = players?.filter(p => p.team_id === team.id).length || 0;
+        return playerCount < 20; // Assuming 20 players minimum
+      }).length || 0;
+
+      setStats({
+        totalLeagues: leagues?.length || 0,
+        totalTeams: teams?.length || 0,
+        totalPlayers: players?.length || 0,
+        totalGames: games?.length || 0,
+        gamesSimulatedToday: games?.filter(g => 
+          g.status === 'completed' && 
+          new Date(g.game_date).toDateString() === new Date().toDateString()
+        ).length || 0,
+        activeUsers: profiles?.length || 0,
+        teamsWithoutGMs,
+        incompleteTeams,
+      });
+
+      // Generate alerts
+      const newAlerts: Alert[] = [];
+      if (teamsWithoutGMs > 0) {
+        newAlerts.push({
+          id: 'no-gm',
+          type: 'warning',
+          message: `${teamsWithoutGMs} teams without assigned GMs`,
+          action: 'Assign GMs'
+        });
+      }
+      if (incompleteTeams > 0) {
+        newAlerts.push({
+          id: 'incomplete',
+          type: 'warning',
+          message: `${incompleteTeams} teams need more players`,
+          action: 'Generate Players'
+        });
+      }
+      setAlerts(newAlerts);
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const simulateOneDay = async () => {
+    toast({
+      title: "Simulation Started",
+      description: "Simulating one day of games...",
+    });
+    // Simulation logic would go here
+  };
+
+  const simulateOneWeek = async () => {
+    toast({
+      title: "Simulation Started", 
+      description: "Simulating one week of games...",
+    });
+    // Simulation logic would go here
+  };
 
   // Quick action cards for the admin
   const quickActions = [
     {
-      title: "Create New League",
-      description: "Set up a new hockey simulation league",
-      icon: Plus,
+      title: "User Management",
+      description: "Create users and assign GMs",
+      icon: Users,
       color: "bg-primary",
-      href: "/admin/leagues/new"
+      href: "/admin/users"
     },
     {
-      title: "Generate Players",
-      description: "Create fictional players for any league",
-      icon: Users,
+      title: "Team Creator",
+      description: "Create teams and assign divisions",
+      icon: Trophy,
       color: "bg-accent",
+      href: "/admin/teams"
+    },
+    {
+      title: "Player Generator",
+      description: "Generate fictional players",
+      icon: Users,
+      color: "bg-team-gold",
       href: "/admin/players/generate"
     },
     {
-      title: "Build Schedule",
-      description: "Create game schedules for existing leagues",
-      icon: Calendar,
-      color: "bg-team-gold",
-      href: "/admin/schedule/new"
-    },
-    {
-      title: "Run Simulation",
-      description: "Simulate games and generate results",
-      icon: Play,
+      title: "Create League",
+      description: "Set up new simulation league",
+      icon: Plus,
       color: "bg-green-600",
-      href: "/admin/simulation"
+      href: "/admin/leagues/new"
     },
   ];
 
@@ -133,6 +254,90 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* League Status & Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
+                League Status & Alerts
+              </CardTitle>
+              <CardDescription>Current league phase and important notifications</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <h3 className="font-semibold">Current Phase</h3>
+                    <p className="text-sm text-muted-foreground">Season progression status</p>
+                  </div>
+                  <Badge variant="outline" className="text-lg px-4 py-2">
+                    {leaguePhase}
+                  </Badge>
+                </div>
+                
+                {alerts.length > 0 ? (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Alerts</h4>
+                    {alerts.map((alert) => (
+                      <div key={alert.id} className="flex items-center justify-between p-3 border border-orange-200 bg-orange-50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-orange-600" />
+                          <span className="text-sm">{alert.message}</span>
+                        </div>
+                        {alert.action && (
+                          <Button size="sm" variant="outline" className="text-xs">
+                            {alert.action}
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 border border-green-200 bg-green-50 rounded-lg">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-sm text-green-700">All systems operational</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5" />
+                Simulation Control
+              </CardTitle>
+              <CardDescription>Run game simulations</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                onClick={simulateOneDay} 
+                className="w-full"
+                disabled={loading}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Simulate 1 Day
+              </Button>
+              <Button 
+                onClick={simulateOneWeek} 
+                variant="outline" 
+                className="w-full"
+                disabled={loading}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Simulate 1 Week
+              </Button>
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground">
+                  Last simulation: {stats.gamesSimulatedToday} games today
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Statistics Overview */}
