@@ -123,7 +123,7 @@ export function AwardsHistoryTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Awards</SelectItem>
-            {awardTypes.map(type => (
+            {awardTypes.filter(type => type && type.trim()).map(type => (
               <SelectItem key={type} value={type}>
                 {awardTypeLabels[type as keyof typeof awardTypeLabels] || type}
               </SelectItem>
@@ -137,7 +137,7 @@ export function AwardsHistoryTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Years</SelectItem>
-            {seasons.map(season => (
+            {seasons.filter(season => season && !isNaN(season)).map(season => (
               <SelectItem key={season} value={season.toString()}>
                 {season}
               </SelectItem>

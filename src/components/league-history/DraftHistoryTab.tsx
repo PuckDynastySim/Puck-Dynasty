@@ -127,7 +127,7 @@ export function DraftHistoryTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Years</SelectItem>
-            {draftYears.map(year => (
+            {draftYears.filter(year => year && !isNaN(year)).map(year => (
               <SelectItem key={year} value={year.toString()}>
                 {year}
               </SelectItem>
@@ -141,7 +141,7 @@ export function DraftHistoryTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Rounds</SelectItem>
-            {rounds.map(round => (
+            {rounds.filter(round => round && !isNaN(round)).map(round => (
               <SelectItem key={round} value={round.toString()}>
                 Round {round}
               </SelectItem>

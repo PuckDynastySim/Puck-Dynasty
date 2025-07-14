@@ -137,7 +137,7 @@ export function MilestonesTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Milestones</SelectItem>
-            {milestoneTypes.map(type => (
+            {milestoneTypes.filter(type => type && type.trim()).map(type => (
               <SelectItem key={type} value={type}>
                 {milestoneTypeLabels[type as keyof typeof milestoneTypeLabels] || type}
               </SelectItem>
@@ -151,7 +151,7 @@ export function MilestonesTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Years</SelectItem>
-            {seasons.map(season => (
+            {seasons.filter(season => season && !isNaN(season)).map(season => (
               <SelectItem key={season} value={season.toString()}>
                 {season}
               </SelectItem>
