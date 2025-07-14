@@ -9,7 +9,9 @@ import {
   Shield,
   FileText,
   Zap,
-  Database
+  Database,
+  BarChart3,
+  History
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -36,6 +38,8 @@ const adminItems = [
   { title: "Simulation Engine", url: "/admin/simulation", icon: Play, description: "Run Game Simulations" },
   { title: "User Management", url: "/admin/users", icon: Database, description: "Manage GMs & Users" },
   { title: "Reports & Stats", url: "/admin/reports", icon: FileText, description: "League Analytics" },
+  { title: "League Stats", url: "/league-stats", icon: BarChart3, description: "View Current Season Statistics" },
+  { title: "League History", url: "/league-history", icon: History, description: "Browse Historical Records" },
 ];
 
 export function AdminSidebar() {
