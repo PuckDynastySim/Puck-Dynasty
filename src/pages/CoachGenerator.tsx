@@ -33,13 +33,44 @@ export default function CoachGenerator() {
   const nationalities = ["Canada", "USA", "Sweden", "Finland", "Russia", "Czech Republic", "Slovakia"];
 
   const generateRandomCoach = (): Coach => {
-    const firstNames = ["Mike", "John", "Dave", "Steve", "Bob", "Tom", "Jim", "Dan", "Mark", "Paul"];
-    const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez"];
+    const namesByNationality = {
+      "Canada": {
+        firstNames: ["Connor", "Tyler", "Jake", "Matt", "Ryan", "Brad", "Mike", "Steve", "Dave", "Mark", "Scott", "Kevin", "Jason", "Tom", "Dan"],
+        lastNames: ["MacDonald", "Campbell", "Stewart", "Morrison", "Robertson", "Thomson", "Clark", "Lewis", "Walker", "Hall", "Smith", "Johnson", "Williams"]
+      },
+      "USA": {
+        firstNames: ["Mike", "John", "Dave", "Steve", "Bob", "Tom", "Jim", "Dan", "Mark", "Paul", "Chris", "Kevin", "Justin", "Brad", "Scott"],
+        lastNames: ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Jackson"]
+      },
+      "Sweden": {
+        firstNames: ["Erik", "Lars", "Mikael", "Henrik", "Niklas", "Viktor", "Patrik", "Magnus", "Sven", "Johan", "Anders", "Mats", "Per", "Stefan", "Ulf"],
+        lastNames: ["Andersson", "Johansson", "Karlsson", "Nilsson", "Eriksson", "Larsson", "Olsson", "Persson", "Svensson", "Gustafsson", "Pettersson", "Jonsson"]
+      },
+      "Finland": {
+        firstNames: ["Jani", "Mikko", "Jukka", "Ville", "Antti", "Sami", "Juha", "Timo", "Kari", "Pekka", "Mika", "Petri", "Risto", "Esa", "Jarmo"],
+        lastNames: ["Koivu", "Selanne", "Kurri", "Rinne", "Rask", "Barkov", "Laine", "Aho", "Granlund", "Donskoi", "Vatanen", "Lehkonen", "Armia"]
+      },
+      "Russia": {
+        firstNames: ["Alexander", "Sergei", "Dmitri", "Andrei", "Pavel", "Igor", "Evgeni", "Vladimir", "Alexei", "Nikolai", "Viktor", "Mikhail", "Oleg"],
+        lastNames: ["Petrov", "Volkov", "Smirnov", "Popov", "Fedorov", "Morozov", "Kozlov", "Sokolov", "Lebedev", "Novikov", "Kuznetsov", "Orlov"]
+      },
+      "Czech Republic": {
+        firstNames: ["Pavel", "Petr", "Jan", "Tomas", "Martin", "Jakub", "Michal", "David", "Lukas", "Ondrej", "Filip", "Patrik", "Radek"],
+        lastNames: ["Dvorak", "Novak", "Svoboda", "Novotny", "Prochazka", "Krejci", "Havel", "Moravec", "Pokorny", "Pospisil", "Pastrnak", "Voracek"]
+      },
+      "Slovakia": {
+        firstNames: ["Peter", "Martin", "Michal", "Tomas", "Jan", "Pavol", "Lukas", "Marek", "Juraj", "Stanislav", "Roman", "Miroslav", "Zdeno"],
+        lastNames: ["Halak", "Hossa", "Gaborik", "Chara", "Sekera", "Tatar", "Cernak", "Fehervary", "Zigo", "Slafkovsky", "Nemec", "Ruzicka"]
+      }
+    };
+
+    const nationality = nationalities[Math.floor(Math.random() * nationalities.length)];
+    const names = namesByNationality[nationality as keyof typeof namesByNationality] || namesByNationality["Canada"];
     
     return {
-      first_name: firstNames[Math.floor(Math.random() * firstNames.length)],
-      last_name: lastNames[Math.floor(Math.random() * lastNames.length)],
-      nationality: nationalities[Math.floor(Math.random() * nationalities.length)],
+      first_name: names.firstNames[Math.floor(Math.random() * names.firstNames.length)],
+      last_name: names.lastNames[Math.floor(Math.random() * names.lastNames.length)],
+      nationality,
       offense_specialty: Math.floor(Math.random() * 50) + 40,
       defense_specialty: Math.floor(Math.random() * 50) + 40,
       powerplay_specialty: Math.floor(Math.random() * 50) + 40,

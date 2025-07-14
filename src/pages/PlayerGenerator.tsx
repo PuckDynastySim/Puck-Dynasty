@@ -75,26 +75,63 @@ const PlayerGenerator = () => {
   ];
 
   const generateRandomPlayer = (position: string) => {
-    const firstNames = [
-      "Connor", "Nathan", "Tyler", "Brandon", "Alex", "Ryan", "Jake", "Matt", "David", "Mike",
-      "Chris", "Kevin", "Justin", "Brad", "Scott", "Jason", "Mark", "Steve", "Dan", "Tom",
-      "Erik", "Lars", "Mikael", "Henrik", "Niklas", "Viktor", "Patrik", "Magnus", "Sven", "Johan"
-    ];
-    
-    const lastNames = [
-      "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
-      "Andersson", "Johansson", "Karlsson", "Nilsson", "Eriksson", "Larsson", "Olsson", "Persson", "Svensson", "Gustafsson",
-      "MacDonald", "Campbell", "Stewart", "Morrison", "Robertson", "Thomson", "Clark", "Lewis", "Walker", "Hall"
-    ];
+    const namesByNationality = {
+      "Canada": {
+        firstNames: ["Connor", "Tyler", "Jake", "Matt", "Ryan", "Brad", "Nathan", "Brandon", "Alex", "Kevin", "Justin", "Scott", "Jason", "Mark", "Steve", "Dan", "Tom", "Mike", "Chris", "David"],
+        lastNames: ["MacDonald", "Campbell", "Stewart", "Morrison", "Robertson", "Thomson", "Clark", "Lewis", "Walker", "Hall", "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson"]
+      },
+      "USA": {
+        firstNames: ["Mike", "John", "Dave", "Steve", "Bob", "Tom", "Jim", "Dan", "Mark", "Paul", "Chris", "Kevin", "Justin", "Brad", "Scott", "Jason", "Tyler", "Ryan", "Alex", "Brandon"],
+        lastNames: ["Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Garcia", "Martinez"]
+      },
+      "Sweden": {
+        firstNames: ["Erik", "Lars", "Mikael", "Henrik", "Niklas", "Viktor", "Patrik", "Magnus", "Sven", "Johan", "Anders", "Mats", "Per", "Stefan", "Ulf", "Elias", "Filip", "Alexander", "William", "Oscar"],
+        lastNames: ["Andersson", "Johansson", "Karlsson", "Nilsson", "Eriksson", "Larsson", "Olsson", "Persson", "Svensson", "Gustafsson", "Pettersson", "Jonsson", "Jansson", "Hansson", "Bengtsson", "Jorgensen"]
+      },
+      "Finland": {
+        firstNames: ["Jani", "Mikko", "Jukka", "Ville", "Antti", "Sami", "Juha", "Timo", "Kari", "Pekka", "Mika", "Petri", "Risto", "Esa", "Jarmo", "Aleksi", "Eetu", "Kaapo", "Jesse", "Arttu"],
+        lastNames: ["Koivu", "Selanne", "Kurri", "Rinne", "Rask", "Barkov", "Laine", "Aho", "Granlund", "Donskoi", "Vatanen", "Lehkonen", "Armia", "Heiskanen", "Kakko", "Lundell", "Puustinen"]
+      },
+      "Russia": {
+        firstNames: ["Alexander", "Sergei", "Dmitri", "Andrei", "Pavel", "Igor", "Evgeni", "Vladimir", "Alexei", "Nikolai", "Viktor", "Mikhail", "Oleg", "Kirill", "Nikita", "Ivan", "Artem", "Roman", "Denis", "Maxim"],
+        lastNames: ["Petrov", "Volkov", "Smirnov", "Popov", "Fedorov", "Morozov", "Kozlov", "Sokolov", "Lebedev", "Novikov", "Kuznetsov", "Orlov", "Ovechkin", "Malkin", "Kucherov", "Panarin", "Vasilevskiy"]
+      },
+      "Czech Republic": {
+        firstNames: ["Pavel", "Petr", "Jan", "Tomas", "Martin", "Jakub", "Michal", "David", "Lukas", "Ondrej", "Filip", "Patrik", "Radek", "Adam", "Matej", "Dominik", "Daniel", "Marek", "Vojtech"],
+        lastNames: ["Dvorak", "Novak", "Svoboda", "Novotny", "Prochazka", "Krejci", "Havel", "Moravec", "Pokorny", "Pospisil", "Pastrnak", "Voracek", "Hertl", "Necas", "Zacha", "Rittich"]
+      },
+      "Slovakia": {
+        firstNames: ["Peter", "Martin", "Michal", "Tomas", "Jan", "Pavol", "Lukas", "Marek", "Juraj", "Stanislav", "Roman", "Miroslav", "Zdeno", "Andrej", "Erik", "Samuel", "Adam", "Patrik"],
+        lastNames: ["Halak", "Hossa", "Gaborik", "Chara", "Sekera", "Tatar", "Cernak", "Fehervary", "Zigo", "Slafkovsky", "Nemec", "Ruzicka", "Studenic", "Kelemen", "Chromiak", "Mesar"]
+      },
+      "Germany": {
+        firstNames: ["Leon", "Tim", "Tobias", "Marcel", "Dominik", "Matthias", "Moritz", "Philipp", "Dennis", "Marco", "Yannic", "Korbinian", "Lukas", "Felix", "Maximilian", "Jonas", "Nico", "Tom"],
+        lastNames: ["Draisaitl", "Kahun", "Rieder", "Goc", "Holzer", "Seidenberg", "Ehrhoff", "Sturm", "Krupp", "Muller", "Pfoser", "Reichel", "Seider", "Stutzle", "Michaelis", "Bokk"]
+      },
+      "Switzerland": {
+        firstNames: ["Nino", "Roman", "Timo", "Nico", "Kevin", "Yannick", "Gaetan", "Damien", "Vincent", "Luca", "Sven", "Philipp", "Dean", "Marco", "Pius", "Noah", "Andres", "Joel"],
+        lastNames: ["Niederreiter", "Josi", "Meier", "Hischier", "Fiala", "Weber", "Haas", "Brunner", "Praplan", "Kurashev", "Andrighetto", "Loeffel", "Kukan", "Berra", "Suter", "Rod"]
+      },
+      "Norway": {
+        firstNames: ["Mats", "Andreas", "Patrick", "Mathis", "Thomas", "Jonas", "Martin", "Ole", "Kristian", "Henrik", "Lars", "Sondre", "Tobias", "Emil", "Alexander", "Marcus", "Even", "Markus"],
+        lastNames: ["Zuccarello", "Martinsen", "Thoresen", "Olimb", "Vaagan", "Holos", "Nymo", "Forsberg", "Bonsaksen", "Rosseli", "Salsten", "Olsen", "Hansen", "Bjornstad", "Granberg"]
+      },
+      "Denmark": {
+        firstNames: ["Lars", "Mikkel", "Frederik", "Nicklas", "Oliver", "Mathias", "Jannik", "Alexander", "Magnus", "Joachim", "Sebastian", "Nikolaj", "Rasmus", "Andreas", "Malte", "Mads", "Emil"],
+        lastNames: ["Eller", "Boedker", "Andersen", "Jensen", "Bjorkstrand", "Bau", "Hansen", "Madsen", "Mortensen", "Ehlers", "Reimer", "From", "Askerov", "Olesen", "Larsen", "Nielsen"]
+      }
+    };
 
     const nationalities = [
       "Canada", "USA", "Sweden", "Finland", "Russia", "Czech Republic", 
       "Slovakia", "Germany", "Switzerland", "Norway", "Denmark"
     ];
 
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const nationality = nationalities[Math.floor(Math.random() * nationalities.length)];
+    const names = namesByNationality[nationality as keyof typeof namesByNationality] || namesByNationality["Canada"];
+    
+    const firstName = names.firstNames[Math.floor(Math.random() * names.firstNames.length)];
+    const lastName = names.lastNames[Math.floor(Math.random() * names.lastNames.length)];
     
     // Age based on league type
     const ageRange = getAgeRange(selectedLeagueData?.league_type || 'pro');
