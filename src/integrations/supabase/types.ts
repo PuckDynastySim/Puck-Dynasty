@@ -56,6 +56,42 @@ export type Database = {
         }
         Relationships: []
       }
+      career_milestones: {
+        Row: {
+          created_at: string
+          description: string | null
+          game_id: string | null
+          id: string
+          milestone_date: string
+          milestone_type: string
+          milestone_value: number | null
+          player_id: string
+          season_year: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          game_id?: string | null
+          id?: string
+          milestone_date?: string
+          milestone_type: string
+          milestone_value?: number | null
+          player_id: string
+          season_year?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          game_id?: string | null
+          id?: string
+          milestone_date?: string
+          milestone_type?: string
+          milestone_value?: number | null
+          player_id?: string
+          season_year?: number
+        }
+        Relationships: []
+      }
       coaches: {
         Row: {
           created_at: string | null
@@ -121,6 +157,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      draft_history: {
+        Row: {
+          created_at: string
+          draft_position: string
+          draft_round: number
+          draft_year: number
+          id: string
+          league_id: string
+          overall_pick: number
+          pick_number: number
+          player_development_rating: number | null
+          player_id: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          draft_position: string
+          draft_round: number
+          draft_year: number
+          id?: string
+          league_id: string
+          overall_pick: number
+          pick_number: number
+          player_development_rating?: number | null
+          player_id: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          draft_position?: string
+          draft_round?: number
+          draft_year?: number
+          id?: string
+          league_id?: string
+          overall_pick?: number
+          pick_number?: number
+          player_development_rating?: number | null
+          player_id?: string
+          team_id?: string
+        }
+        Relationships: []
       }
       game_periods: {
         Row: {
@@ -400,6 +478,42 @@ export type Database = {
         }
         Relationships: []
       }
+      player_awards: {
+        Row: {
+          award_type: string
+          created_at: string
+          id: string
+          league_id: string
+          player_id: string
+          season_year: number
+          stats_snapshot: Json | null
+          team_id: string
+          voting_points: number | null
+        }
+        Insert: {
+          award_type: string
+          created_at?: string
+          id?: string
+          league_id: string
+          player_id: string
+          season_year?: number
+          stats_snapshot?: Json | null
+          team_id: string
+          voting_points?: number | null
+        }
+        Update: {
+          award_type?: string
+          created_at?: string
+          id?: string
+          league_id?: string
+          player_id?: string
+          season_year?: number
+          stats_snapshot?: Json | null
+          team_id?: string
+          voting_points?: number | null
+        }
+        Relationships: []
+      }
       player_contracts: {
         Row: {
           contract_length: number
@@ -577,6 +691,7 @@ export type Database = {
           goals: number
           hits: number
           id: string
+          is_archived: boolean | null
           league_id: string
           penalty_minutes: number
           player_id: string
@@ -608,6 +723,7 @@ export type Database = {
           goals?: number
           hits?: number
           id?: string
+          is_archived?: boolean | null
           league_id: string
           penalty_minutes?: number
           player_id: string
@@ -639,6 +755,7 @@ export type Database = {
           goals?: number
           hits?: number
           id?: string
+          is_archived?: boolean | null
           league_id?: string
           penalty_minutes?: number
           player_id?: string
@@ -832,6 +949,81 @@ export type Database = {
         }
         Relationships: []
       }
+      season_archives: {
+        Row: {
+          archived_at: string
+          champion_team_id: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          league_id: string
+          season_year: number
+          start_date: string | null
+          status: string
+          total_games_played: number | null
+          total_players: number | null
+        }
+        Insert: {
+          archived_at?: string
+          champion_team_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          league_id: string
+          season_year: number
+          start_date?: string | null
+          status?: string
+          total_games_played?: number | null
+          total_players?: number | null
+        }
+        Update: {
+          archived_at?: string
+          champion_team_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          league_id?: string
+          season_year?: number
+          start_date?: string | null
+          status?: string
+          total_games_played?: number | null
+          total_players?: number | null
+        }
+        Relationships: []
+      }
+      season_champions: {
+        Row: {
+          champion_team_id: string
+          championship_date: string | null
+          created_at: string
+          id: string
+          league_id: string
+          playoff_series_length: number | null
+          runner_up_team_id: string | null
+          season_year: number
+        }
+        Insert: {
+          champion_team_id: string
+          championship_date?: string | null
+          created_at?: string
+          id?: string
+          league_id: string
+          playoff_series_length?: number | null
+          runner_up_team_id?: string | null
+          season_year?: number
+        }
+        Update: {
+          champion_team_id?: string
+          championship_date?: string | null
+          created_at?: string
+          id?: string
+          league_id?: string
+          playoff_series_length?: number | null
+          runner_up_team_id?: string | null
+          season_year?: number
+        }
+        Relationships: []
+      }
       team_finances: {
         Row: {
           arena_expenses: number | null
@@ -922,18 +1114,22 @@ export type Database = {
       team_standings: {
         Row: {
           created_at: string
+          eliminated_round: string | null
           faceoff_losses: number
           faceoff_wins: number
+          final_ranking: number | null
           games_played: number | null
           goal_differential: number | null
           goals_against: number
           goals_for: number
           id: string
+          is_archived: boolean | null
           league_id: string
           losses: number
           overtime_losses: number
           penalty_kill_goals_against: number
           penalty_kill_opportunities: number
+          playoff_position: number | null
           points: number | null
           powerplay_goals: number
           powerplay_opportunities: number
@@ -946,18 +1142,22 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          eliminated_round?: string | null
           faceoff_losses?: number
           faceoff_wins?: number
+          final_ranking?: number | null
           games_played?: number | null
           goal_differential?: number | null
           goals_against?: number
           goals_for?: number
           id?: string
+          is_archived?: boolean | null
           league_id: string
           losses?: number
           overtime_losses?: number
           penalty_kill_goals_against?: number
           penalty_kill_opportunities?: number
+          playoff_position?: number | null
           points?: number | null
           powerplay_goals?: number
           powerplay_opportunities?: number
@@ -970,18 +1170,22 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          eliminated_round?: string | null
           faceoff_losses?: number
           faceoff_wins?: number
+          final_ranking?: number | null
           games_played?: number | null
           goal_differential?: number | null
           goals_against?: number
           goals_for?: number
           id?: string
+          is_archived?: boolean | null
           league_id?: string
           losses?: number
           overtime_losses?: number
           penalty_kill_goals_against?: number
           penalty_kill_opportunities?: number
+          playoff_position?: number | null
           points?: number | null
           powerplay_goals?: number
           powerplay_opportunities?: number
