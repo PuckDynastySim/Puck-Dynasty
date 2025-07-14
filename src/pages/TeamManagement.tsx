@@ -261,7 +261,7 @@ export default function TeamManagement() {
           division: newTeam.division || null,
           conference: newTeam.conference || null,
           league_id: newTeam.league_id,
-          gm_user_id: newTeam.is_ai_controlled ? null : (newTeam.gm_user_id || null),
+          gm_user_id: newTeam.is_ai_controlled ? null : (newTeam.gm_user_id === 'no_gm' ? null : newTeam.gm_user_id || null),
           parent_team_id: newTeam.parent_team_id || null,
           is_ai_controlled: newTeam.is_ai_controlled
         });
@@ -337,7 +337,10 @@ export default function TeamManagement() {
                         <SelectValue placeholder="Select league" />
                       </SelectTrigger>
                       <SelectContent>
-                        {leagues.filter(league => league.id && league.id.trim()).map(league => (
+                        {leagues.filter(league => {
+                          console.log('League filter check:', league?.id, league?.id?.trim());
+                          return league?.id && league?.id?.trim();
+                        }).map(league => (
                           <SelectItem key={league.id} value={league.id}>
                             <div className="flex items-center gap-2">
                               <Badge variant={league.league_type === 'pro' ? 'default' : league.league_type === 'farm' ? 'secondary' : 'outline'}>
@@ -387,7 +390,10 @@ export default function TeamManagement() {
                         <SelectValue placeholder="Select conference" />
                       </SelectTrigger>
                       <SelectContent>
-                        {CONFERENCES.map(conf => (
+                        {CONFERENCES.filter(conf => {
+                          console.log('Conference filter check:', conf);
+                          return conf && conf.trim();
+                        }).map(conf => (
                           <SelectItem key={conf} value={conf}>
                             {conf}
                           </SelectItem>
@@ -402,7 +408,10 @@ export default function TeamManagement() {
                         <SelectValue placeholder="Select division" />
                       </SelectTrigger>
                       <SelectContent>
-                        {DIVISIONS.map(div => (
+                        {DIVISIONS.filter(div => {
+                          console.log('Division filter check:', div);
+                          return div && div.trim();
+                        }).map(div => (
                           <SelectItem key={div} value={div}>
                             {div}
                           </SelectItem>
@@ -419,7 +428,10 @@ export default function TeamManagement() {
                           <SelectValue placeholder="Select parent team" />
                         </SelectTrigger>
                         <SelectContent>
-                          {proTeams.filter(team => team.id && team.id.trim()).map(team => (
+                          {proTeams.filter(team => {
+                            console.log('ProTeam filter check:', team?.id, team?.id?.trim());
+                            return team?.id && team?.id?.trim();
+                          }).map(team => (
                             <SelectItem key={team.id} value={team.id}>
                               {team.city} {team.name}
                             </SelectItem>
@@ -453,8 +465,11 @@ export default function TeamManagement() {
                           <SelectValue placeholder="Select GM (optional)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No GM (AI Controlled)</SelectItem>
-                          {users.map(user => (
+                          <SelectItem value="no_gm">No GM (AI Controlled)</SelectItem>
+                          {users.filter(user => {
+                            console.log('User filter check:', user?.user_id, user?.user_id?.trim());
+                            return user?.user_id && user?.user_id?.trim();
+                          }).map(user => (
                             <SelectItem key={user.user_id} value={user.user_id}>
                               {user.display_name || user.email}
                             </SelectItem>
