@@ -228,11 +228,11 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <ul className="text-left space-y-2 text-sm text-muted-foreground">
-                  <li>🔄 GM team management interface</li>
+                  <li>✅ GM team management interface</li>
+                  <li>✅ Real-time game updates</li>
+                  <li>✅ Online GM presence tracking</li>
                   <li>🔄 Player trading system</li>
                   <li>🔄 Draft management</li>
-                  <li>🔄 Team strategy settings</li>
-                  <li>🔄 League communication tools</li>
                 </ul>
               </CardContent>
             </Card>

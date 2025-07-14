@@ -11,6 +11,7 @@ import LeagueCreation from "./pages/LeagueCreation";
 import PlayerGenerator from "./pages/PlayerGenerator";
 import ScheduleBuilder from "./pages/ScheduleBuilder";
 import SimulationEngine from "./pages/SimulationEngine";
+import GMDashboard from "./pages/GMDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -54,6 +55,11 @@ const App = () => (
             <Route path="/admin/simulation/engine" element={
               <ProtectedRoute>
                 <SimulationEngine />
+              </ProtectedRoute>
+            } />
+            <Route path="/gm" element={
+              <ProtectedRoute>
+                <GMDashboard />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
