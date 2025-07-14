@@ -28,6 +28,7 @@ const GMDashboard = () => {
   const [league, setLeague] = useState<League | null>(null);
   const [loading, setLoading] = useState(true);
   const [onlineGMs, setOnlineGMs] = useState<any[]>([]);
+  const [currentPayroll, setCurrentPayroll] = useState<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -88,6 +89,9 @@ const GMDashboard = () => {
         .limit(5);
 
       setUpcomingGames(gamesData || []);
+
+      // Fetch current payroll
+      await fetchCurrentPayroll(teamData.id);
     } catch (error) {
       console.error("Error fetching team data:", error);
       toast({
@@ -182,11 +186,20 @@ const GMDashboard = () => {
     return league.salary_cap;
   };
 
-  const calculateCurrentPayroll = () => {
-    if (!players) return 0;
-    // This would need to be enhanced to fetch actual contract data
-    // For now, using a placeholder calculation
-    return players.length * 500000; // Average of $500k per player
+  const fetchCurrentPayroll = async (teamId: string) => {
+    try {
+      const { data: contracts } = await supabase
+        .from("player_contracts")
+        .select("salary")
+        .eq("team_id", teamId)
+        .eq("status", "active");
+      
+      const payroll = contracts?.reduce((total, contract) => total + contract.salary, 0) || 0;
+      setCurrentPayroll(payroll);
+    } catch (error) {
+      console.error("Error calculating payroll:", error);
+      setCurrentPayroll(0);
+    }
   };
 
   if (loading) {
@@ -351,7 +364,7 @@ const GMDashboard = () => {
               teamId={team.id} 
               leagueId={league?.id || ''}
               salaryCap={calculateSalaryCap()}
-              currentPayroll={calculateCurrentPayroll()}
+              currentPayroll={currentPayroll}
             />
           </TabsContent>
 

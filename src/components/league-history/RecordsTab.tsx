@@ -29,31 +29,134 @@ export function RecordsTab() {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        // Since the historical data relationships are still being set up,
-        // we'll show placeholder data for now
         const processedPlayerRecords: {[key: string]: PlayerRecord[]} = {};
         const processedTeamRecords: {[key: string]: TeamRecord[]} = {};
         
-        // Placeholder data for demonstration
-        processedPlayerRecords.goals = [
-          { player_name: "Sample Player 1", team_name: "Sample Team", season_year: 2024, value: 50, position: "C" },
-          { player_name: "Sample Player 2", team_name: "Sample Team 2", season_year: 2024, value: 45, position: "RW" }
-        ];
-        
-        processedPlayerRecords.points = [
-          { player_name: "Sample Player 3", team_name: "Sample Team", season_year: 2024, value: 95, position: "C" },
-          { player_name: "Sample Player 4", team_name: "Sample Team 3", season_year: 2024, value: 88, position: "LW" }
-        ];
-        
-        processedTeamRecords.wins = [
-          { team_name: "Sample Team", season_year: 2024, value: 58 },
-          { team_name: "Sample Team 2", season_year: 2024, value: 55 }
-        ];
-        
-        processedTeamRecords.points = [
-          { team_name: "Sample Team", season_year: 2024, value: 125 },
-          { team_name: "Sample Team 2", season_year: 2024, value: 118 }
-        ];
+        // Fetch player records for goals
+        const { data: goalRecords } = await supabase
+          .from("player_season_stats")
+          .select("goals, season_year, player_id, team_id")
+          .order("goals", { ascending: false })
+          .limit(10);
+
+        if (goalRecords?.length > 0) {
+          // Get player and team info for goal records
+          const playerIds = [...new Set(goalRecords.map(r => r.player_id))];
+          const teamIds = [...new Set(goalRecords.map(r => r.team_id))];
+          
+          const { data: players } = await supabase
+            .from("players")
+            .select("id, first_name, last_name, player_position")
+            .in("id", playerIds);
+            
+          const { data: teams } = await supabase
+            .from("teams")
+            .select("id, city, name")
+            .in("id", teamIds);
+
+          processedPlayerRecords.goals = goalRecords
+            .filter(record => record.goals > 0)
+            .map(record => {
+              const player = players?.find(p => p.id === record.player_id);
+              const team = teams?.find(t => t.id === record.team_id);
+              return {
+                player_name: player ? `${player.first_name} ${player.last_name}` : 'Unknown Player',
+                team_name: team ? `${team.city} ${team.name}` : 'Unknown Team',
+                season_year: record.season_year,
+                value: record.goals,
+                position: player?.player_position || ''
+              };
+            });
+        }
+
+        // Fetch player records for points
+        const { data: pointRecords } = await supabase
+          .from("player_season_stats")
+          .select("points, season_year, player_id, team_id")
+          .order("points", { ascending: false })
+          .limit(10);
+
+        if (pointRecords?.length > 0) {
+          // Get player and team info for point records
+          const playerIds = [...new Set(pointRecords.map(r => r.player_id))];
+          const teamIds = [...new Set(pointRecords.map(r => r.team_id))];
+          
+          const { data: players } = await supabase
+            .from("players")
+            .select("id, first_name, last_name, player_position")
+            .in("id", playerIds);
+            
+          const { data: teams } = await supabase
+            .from("teams")
+            .select("id, city, name")
+            .in("id", teamIds);
+
+          processedPlayerRecords.points = pointRecords
+            .filter(record => record.points && record.points > 0)
+            .map(record => {
+              const player = players?.find(p => p.id === record.player_id);
+              const team = teams?.find(t => t.id === record.team_id);
+              return {
+                player_name: player ? `${player.first_name} ${player.last_name}` : 'Unknown Player',
+                team_name: team ? `${team.city} ${team.name}` : 'Unknown Team',
+                season_year: record.season_year,
+                value: record.points || 0,
+                position: player?.player_position || ''
+              };
+            });
+        }
+
+        // Fetch team records for wins
+        const { data: winRecords } = await supabase
+          .from("team_standings")
+          .select("wins, season_year, team_id")
+          .order("wins", { ascending: false })
+          .limit(10);
+
+        if (winRecords?.length > 0) {
+          const teamIds = [...new Set(winRecords.map(r => r.team_id))];
+          const { data: teams } = await supabase
+            .from("teams")
+            .select("id, city, name")
+            .in("id", teamIds);
+
+          processedTeamRecords.wins = winRecords
+            .filter(record => record.wins > 0)
+            .map(record => {
+              const team = teams?.find(t => t.id === record.team_id);
+              return {
+                team_name: team ? `${team.city} ${team.name}` : 'Unknown Team',
+                season_year: record.season_year,
+                value: record.wins
+              };
+            });
+        }
+
+        // Fetch team records for points
+        const { data: teamPointRecords } = await supabase
+          .from("team_standings")
+          .select("points, season_year, team_id")
+          .order("points", { ascending: false })
+          .limit(10);
+
+        if (teamPointRecords?.length > 0) {
+          const teamIds = [...new Set(teamPointRecords.map(r => r.team_id))];
+          const { data: teams } = await supabase
+            .from("teams")
+            .select("id, city, name")
+            .in("id", teamIds);
+
+          processedTeamRecords.points = teamPointRecords
+            .filter(record => record.points && record.points > 0)
+            .map(record => {
+              const team = teams?.find(t => t.id === record.team_id);
+              return {
+                team_name: team ? `${team.city} ${team.name}` : 'Unknown Team',
+                season_year: record.season_year,
+                value: record.points || 0
+              };
+            });
+        }
 
         setPlayerRecords(processedPlayerRecords);
         setTeamRecords(processedTeamRecords);
