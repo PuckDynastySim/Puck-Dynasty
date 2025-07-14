@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { UserPlus, Zap, Trophy, Users, Loader2 } from "lucide-react";
+import { UserPlus, Zap, Trophy, Users, Loader2, Shield, AlertCircle } from "lucide-react";
 
 const PlayerGenerator = () => {
   const [generating, setGenerating] = useState(false);
@@ -17,7 +17,54 @@ const PlayerGenerator = () => {
   const [playerCount, setPlayerCount] = useState(30);
   const [selectedLeague, setSelectedLeague] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
+  const [leagues, setLeagues] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [selectedLeagueData, setSelectedLeagueData] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadLeagues();
+  }, []);
+
+  const loadLeagues = async () => {
+    const { data: leaguesData } = await supabase
+      .from('leagues')
+      .select('*')
+      .order('name');
+    setLeagues(leaguesData || []);
+  };
+
+  const handleLeagueChange = async (leagueId: string) => {
+    setSelectedLeague(leagueId);
+    setSelectedTeam("");
+    
+    const league = leagues.find(l => l.id === leagueId);
+    setSelectedLeagueData(league);
+    
+    if (leagueId) {
+      const { data: teamsData } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('league_id', leagueId)
+        .order('name');
+      setTeams(teamsData || []);
+    } else {
+      setTeams([]);
+    }
+  };
+
+  const getAgeRange = (leagueType: string) => {
+    switch (leagueType) {
+      case 'pro':
+        return { min: 18, max: 40 };
+      case 'farm':
+        return { min: 16, max: 35 };
+      case 'junior':
+        return { min: 16, max: 21 };
+      default:
+        return { min: 18, max: 40 };
+    }
+  };
 
   const positions = [
     { value: "C", label: "Center", min: 4, max: 6 },
@@ -48,7 +95,10 @@ const PlayerGenerator = () => {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const nationality = nationalities[Math.floor(Math.random() * nationalities.length)];
-    const age = Math.floor(Math.random() * 15) + 18; // 18-32 years old
+    
+    // Age based on league type
+    const ageRange = getAgeRange(selectedLeagueData?.league_type || 'pro');
+    const age = Math.floor(Math.random() * (ageRange.max - ageRange.min + 1)) + ageRange.min;
 
     // Generate realistic ratings based on position
     const baseRating = Math.floor(Math.random() * 30) + 50; // 50-80 base
@@ -211,16 +261,29 @@ const PlayerGenerator = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="league">League *</Label>
-                <Select value={selectedLeague} onValueChange={setSelectedLeague}>
+                <Select value={selectedLeague} onValueChange={handleLeagueChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a league" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="league-1">Professional League</SelectItem>
-                    <SelectItem value="league-2">Development League</SelectItem>
-                    <SelectItem value="league-3">Junior League</SelectItem>
+                    {leagues.map(league => (
+                      <SelectItem key={league.id} value={league.id}>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={league.league_type === 'pro' ? 'default' : league.league_type === 'farm' ? 'secondary' : 'outline'}>
+                            {league.league_type.toUpperCase()}
+                          </Badge>
+                          {league.name}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {selectedLeagueData && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <AlertCircle className="w-4 h-4" />
+                    Age range: {getAgeRange(selectedLeagueData.league_type).min}-{getAgeRange(selectedLeagueData.league_type).max} years
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -231,12 +294,50 @@ const PlayerGenerator = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Free Agents</SelectItem>
-                    <SelectItem value="team-1">Toronto Maple Leafs</SelectItem>
-                    <SelectItem value="team-2">Montreal Canadiens</SelectItem>
-                    <SelectItem value="team-3">Boston Bruins</SelectItem>
+                    {teams.map(team => (
+                      <SelectItem key={team.id} value={team.id}>
+                        <div className="flex items-center gap-2">
+                          {team.is_ai_controlled && (
+                            <Badge variant="secondary" className="text-xs">AI</Badge>
+                          )}
+                          {team.city} {team.name}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Draft Eligibility Info */}
+              {selectedLeagueData && (
+                <div className="bg-info/10 border border-info/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-info mb-2 flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Draft Eligibility Rules
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    {selectedLeagueData.league_type === 'pro' && (
+                      <>
+                        <div>• Players must be 18+ to be draft eligible</div>
+                        <div>• Pro league allows ages 18-40</div>
+                      </>
+                    )}
+                    {selectedLeagueData.league_type === 'farm' && (
+                      <>
+                        <div>• Farm league allows ages 16-35</div>
+                        <div>• Linked to parent pro organization</div>
+                      </>
+                    )}
+                    {selectedLeagueData.league_type === 'junior' && (
+                      <>
+                        <div>• Junior league: Ages 16-21 only</div>
+                        <div>• Not draft eligible until age 18</div>
+                        <div>• All teams are AI-controlled</div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="count">Number of Players</Label>
@@ -337,13 +438,13 @@ const PlayerGenerator = () => {
 
           <Card className="card-rink stat-card">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-5 w-5 text-team-gold" />
-                <h3 className="font-semibold">Smart Generation</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Position-specific attribute bonuses and realistic age distribution
-              </p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="h-5 w-5 text-team-gold" />
+                    <h3 className="font-semibold">Tiered League System</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Age-appropriate generation for Pro (18+), Farm (16+), and Junior (16-21) leagues
+                  </p>
             </CardContent>
           </Card>
         </div>

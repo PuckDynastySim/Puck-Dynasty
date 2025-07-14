@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -50,8 +50,25 @@ export default function LeagueCreation() {
     divisionsEnabled: true,
     conferencesEnabled: true,
     numConferences: 2,
-    numDivisions: 4
+    numDivisions: 4,
+    parentLeagueId: "" // For farm leagues
   });
+  
+  const [proLeagues, setProLeagues] = useState<any[]>([]);
+  
+  // Load pro leagues for farm league linking
+  useEffect(() => {
+    const loadProLeagues = async () => {
+      if (leagueData.type === "farm") {
+        const { data } = await supabase
+          .from("leagues")
+          .select("id, name")
+          .eq("league_type", "pro");
+        setProLeagues(data || []);
+      }
+    };
+    loadProLeagues();
+  }, [leagueData.type]);
 
   const leagueTypes = [
     { value: "pro", label: "Professional League", description: "Top-tier professional hockey" },
@@ -203,6 +220,44 @@ export default function LeagueCreation() {
                 </div>
               </div>
 
+              {/* Farm League Parent Selection */}
+              {leagueData.type === "farm" && (
+                <div className="space-y-2">
+                  <Label>Parent Professional League</Label>
+                  <Select 
+                    value={leagueData.parentLeagueId} 
+                    onValueChange={(value) => setLeagueData({...leagueData, parentLeagueId: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select parent pro league" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {proLeagues.map((league) => (
+                        <SelectItem key={league.id} value={league.id}>
+                          {league.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Farm teams will be automatically linked to pro teams from this league
+                  </p>
+                </div>
+              )}
+
+              {/* Junior League AI Notice */}
+              {leagueData.type === "junior" && (
+                <div className="bg-info/10 border border-info/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-info mb-2">Junior League Rules</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• All teams are AI-controlled by default</li>
+                    <li>• Players aged 16-21 only</li>
+                    <li>• No draft eligibility until age 18</li>
+                    <li>• Development focus with regular progression</li>
+                  </ul>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="description">League Description</Label>
                 <Textarea
@@ -286,6 +341,11 @@ export default function LeagueCreation() {
                       value={leagueData.minAge}
                       onChange={(e) => setLeagueData({...leagueData, minAge: parseInt(e.target.value)})}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      {leagueData.type === "pro" && "Pro leagues: 18+ for draft eligibility"}
+                      {leagueData.type === "farm" && "Farm leagues: 16+ allowed"}
+                      {leagueData.type === "junior" && "Junior leagues: 16-21 only"}
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
@@ -298,6 +358,9 @@ export default function LeagueCreation() {
                       value={leagueData.maxAge}
                       onChange={(e) => setLeagueData({...leagueData, maxAge: parseInt(e.target.value)})}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      {leagueData.type === "junior" && "Junior leagues: Maximum 21 years"}
+                    </p>
                   </div>
                 </div>
               </div>

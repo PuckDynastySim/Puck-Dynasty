@@ -556,8 +556,10 @@ export type Database = {
           division: string | null
           gm_user_id: string | null
           id: string
+          is_ai_controlled: boolean
           league_id: string
           name: string
+          parent_team_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -568,8 +570,10 @@ export type Database = {
           division?: string | null
           gm_user_id?: string | null
           id?: string
+          is_ai_controlled?: boolean
           league_id: string
           name: string
+          parent_team_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -580,8 +584,10 @@ export type Database = {
           division?: string | null
           gm_user_id?: string | null
           id?: string
+          is_ai_controlled?: boolean
           league_id?: string
           name?: string
+          parent_team_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -590,6 +596,13 @@ export type Database = {
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_parent_team_id_fkey"
+            columns: ["parent_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -663,10 +676,30 @@ export type Database = {
         Args: { _user_id: string; _league_id: string }
         Returns: boolean
       }
+      get_organization_teams: {
+        Args: { _team_id: string }
+        Returns: {
+          team_id: string
+          team_name: string
+          league_type: Database["public"]["Enums"]["league_type"]
+          is_parent: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
+      is_draft_eligible: {
+        Args: { _player_age: number }
+        Returns: boolean
+      }
+      validate_player_league_age: {
+        Args: {
+          _player_age: number
+          _league_type: Database["public"]["Enums"]["league_type"]
         }
         Returns: boolean
       }

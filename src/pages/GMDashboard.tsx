@@ -11,6 +11,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { RosterManagement } from "@/components/RosterManagement";
 import { LineBuilder } from "@/components/LineBuilder";
 import { TeamStrategy } from "@/components/TeamStrategy";
+import OrganizationView from "@/components/OrganizationView";
 
 type Team = Tables<"teams">;
 type Player = Tables<"players">;
@@ -297,13 +298,18 @@ const GMDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="roster" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="organization">Organization</TabsTrigger>
             <TabsTrigger value="roster">Roster</TabsTrigger>
             <TabsTrigger value="lines">Lines</TabsTrigger>
             <TabsTrigger value="strategy">Strategy</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="organization" className="space-y-6">
+            <OrganizationView userId={user?.id} />
+          </TabsContent>
 
           <TabsContent value="roster" className="space-y-6">
             <RosterManagement 
