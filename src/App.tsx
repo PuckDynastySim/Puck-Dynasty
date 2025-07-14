@@ -13,6 +13,7 @@ import TeamManagement from "./pages/TeamManagement";
 import PlayerGenerator from "./pages/PlayerGenerator";
 import CoachGenerator from "./pages/CoachGenerator";
 import Reports from "./pages/Reports";
+import LeagueStats from "./pages/LeagueStats";
 import ScheduleBuilder from "./pages/ScheduleBuilder";
 import SimulationEngine from "./pages/SimulationEngine";
 import GMDashboard from "./pages/GMDashboard";
@@ -81,6 +82,7 @@ const App = () => (
                 <GMDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/league-stats" element={<LeagueStats />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

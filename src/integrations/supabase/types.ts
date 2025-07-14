@@ -295,6 +295,66 @@ export type Database = {
           },
         ]
       }
+      goalie_game_stats: {
+        Row: {
+          created_at: string
+          game_id: string
+          goals_against: number
+          goals_against_average: number
+          ice_time_seconds: number
+          id: string
+          league_id: string
+          loss: boolean
+          overtime_loss: boolean
+          player_id: string
+          save_percentage: number | null
+          saves: number
+          shots_faced: number
+          shutout: boolean
+          team_id: string
+          updated_at: string
+          win: boolean
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          goals_against?: number
+          goals_against_average?: number
+          ice_time_seconds?: number
+          id?: string
+          league_id: string
+          loss?: boolean
+          overtime_loss?: boolean
+          player_id: string
+          save_percentage?: number | null
+          saves?: number
+          shots_faced?: number
+          shutout?: boolean
+          team_id: string
+          updated_at?: string
+          win?: boolean
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          goals_against?: number
+          goals_against_average?: number
+          ice_time_seconds?: number
+          id?: string
+          league_id?: string
+          loss?: boolean
+          overtime_loss?: boolean
+          player_id?: string
+          save_percentage?: number | null
+          saves?: number
+          shots_faced?: number
+          shutout?: boolean
+          team_id?: string
+          updated_at?: string
+          win?: boolean
+        }
+        Relationships: []
+      }
       leagues: {
         Row: {
           commissioner_id: string | null
@@ -382,6 +442,90 @@ export type Database = {
         }
         Relationships: []
       }
+      player_game_stats: {
+        Row: {
+          assists: number
+          blocked_shots: number
+          created_at: string
+          faceoff_losses: number
+          faceoff_wins: number
+          game_id: string
+          game_winner: boolean
+          giveaways: number
+          goals: number
+          hits: number
+          ice_time_seconds: number
+          id: string
+          league_id: string
+          penalty_minutes: number
+          player_id: string
+          plus_minus: number
+          points: number | null
+          powerplay_assists: number
+          powerplay_goals: number
+          shorthanded_assists: number
+          shorthanded_goals: number
+          shots: number
+          takeaways: number
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          assists?: number
+          blocked_shots?: number
+          created_at?: string
+          faceoff_losses?: number
+          faceoff_wins?: number
+          game_id: string
+          game_winner?: boolean
+          giveaways?: number
+          goals?: number
+          hits?: number
+          ice_time_seconds?: number
+          id?: string
+          league_id: string
+          penalty_minutes?: number
+          player_id: string
+          plus_minus?: number
+          points?: number | null
+          powerplay_assists?: number
+          powerplay_goals?: number
+          shorthanded_assists?: number
+          shorthanded_goals?: number
+          shots?: number
+          takeaways?: number
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          assists?: number
+          blocked_shots?: number
+          created_at?: string
+          faceoff_losses?: number
+          faceoff_wins?: number
+          game_id?: string
+          game_winner?: boolean
+          giveaways?: number
+          goals?: number
+          hits?: number
+          ice_time_seconds?: number
+          id?: string
+          league_id?: string
+          penalty_minutes?: number
+          player_id?: string
+          plus_minus?: number
+          points?: number | null
+          powerplay_assists?: number
+          powerplay_goals?: number
+          shorthanded_assists?: number
+          shorthanded_goals?: number
+          shots?: number
+          takeaways?: number
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       player_injuries: {
         Row: {
           created_at: string
@@ -414,6 +558,102 @@ export type Database = {
           is_active?: boolean
           player_id?: string
           severity?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      player_season_stats: {
+        Row: {
+          assists: number
+          average_ice_time_seconds: number
+          blocked_shots: number
+          created_at: string
+          faceoff_losses: number
+          faceoff_percentage: number | null
+          faceoff_wins: number
+          game_winners: number
+          games_played: number
+          giveaways: number
+          goals: number
+          hits: number
+          id: string
+          league_id: string
+          penalty_minutes: number
+          player_id: string
+          plus_minus: number
+          points: number | null
+          powerplay_assists: number
+          powerplay_goals: number
+          powerplay_points: number | null
+          season_year: number
+          shooting_percentage: number | null
+          shorthanded_assists: number
+          shorthanded_goals: number
+          shots: number
+          takeaways: number
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          assists?: number
+          average_ice_time_seconds?: number
+          blocked_shots?: number
+          created_at?: string
+          faceoff_losses?: number
+          faceoff_percentage?: number | null
+          faceoff_wins?: number
+          game_winners?: number
+          games_played?: number
+          giveaways?: number
+          goals?: number
+          hits?: number
+          id?: string
+          league_id: string
+          penalty_minutes?: number
+          player_id: string
+          plus_minus?: number
+          points?: number | null
+          powerplay_assists?: number
+          powerplay_goals?: number
+          powerplay_points?: number | null
+          season_year?: number
+          shooting_percentage?: number | null
+          shorthanded_assists?: number
+          shorthanded_goals?: number
+          shots?: number
+          takeaways?: number
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          assists?: number
+          average_ice_time_seconds?: number
+          blocked_shots?: number
+          created_at?: string
+          faceoff_losses?: number
+          faceoff_percentage?: number | null
+          faceoff_wins?: number
+          game_winners?: number
+          games_played?: number
+          giveaways?: number
+          goals?: number
+          hits?: number
+          id?: string
+          league_id?: string
+          penalty_minutes?: number
+          player_id?: string
+          plus_minus?: number
+          points?: number | null
+          powerplay_assists?: number
+          powerplay_goals?: number
+          powerplay_points?: number | null
+          season_year?: number
+          shooting_percentage?: number | null
+          shorthanded_assists?: number
+          shorthanded_goals?: number
+          shots?: number
+          takeaways?: number
+          team_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -522,6 +762,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      power_rankings: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          previous_ranking: number | null
+          ranking: number
+          ranking_reason: string | null
+          rating_score: number
+          season_year: number
+          team_id: string
+          trend: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          previous_ranking?: number | null
+          ranking: number
+          ranking_reason?: string | null
+          rating_score?: number
+          season_year?: number
+          team_id: string
+          trend?: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          previous_ranking?: number | null
+          ranking?: number
+          ranking_reason?: string | null
+          rating_score?: number
+          season_year?: number
+          team_id?: string
+          trend?: string
+          week_number?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -634,6 +916,81 @@ export type Database = {
           position?: string
           team_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      team_standings: {
+        Row: {
+          created_at: string
+          faceoff_losses: number
+          faceoff_wins: number
+          games_played: number | null
+          goal_differential: number | null
+          goals_against: number
+          goals_for: number
+          id: string
+          league_id: string
+          losses: number
+          overtime_losses: number
+          penalty_kill_goals_against: number
+          penalty_kill_opportunities: number
+          points: number | null
+          powerplay_goals: number
+          powerplay_opportunities: number
+          season_year: number
+          shots_against: number
+          shots_for: number
+          team_id: string
+          updated_at: string
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          faceoff_losses?: number
+          faceoff_wins?: number
+          games_played?: number | null
+          goal_differential?: number | null
+          goals_against?: number
+          goals_for?: number
+          id?: string
+          league_id: string
+          losses?: number
+          overtime_losses?: number
+          penalty_kill_goals_against?: number
+          penalty_kill_opportunities?: number
+          points?: number | null
+          powerplay_goals?: number
+          powerplay_opportunities?: number
+          season_year?: number
+          shots_against?: number
+          shots_for?: number
+          team_id: string
+          updated_at?: string
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          faceoff_losses?: number
+          faceoff_wins?: number
+          games_played?: number | null
+          goal_differential?: number | null
+          goals_against?: number
+          goals_for?: number
+          id?: string
+          league_id?: string
+          losses?: number
+          overtime_losses?: number
+          penalty_kill_goals_against?: number
+          penalty_kill_opportunities?: number
+          points?: number | null
+          powerplay_goals?: number
+          powerplay_opportunities?: number
+          season_year?: number
+          shots_against?: number
+          shots_for?: number
+          team_id?: string
+          updated_at?: string
+          wins?: number
         }
         Relationships: []
       }
@@ -781,6 +1138,51 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_block: {
+        Row: {
+          asking_price: string | null
+          available_until: string | null
+          created_at: string
+          id: string
+          league_id: string
+          notes: string | null
+          player_id: string
+          priority: string
+          status: string
+          team_id: string
+          trade_interest: string | null
+          updated_at: string
+        }
+        Insert: {
+          asking_price?: string | null
+          available_until?: string | null
+          created_at?: string
+          id?: string
+          league_id: string
+          notes?: string | null
+          player_id: string
+          priority?: string
+          status?: string
+          team_id: string
+          trade_interest?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asking_price?: string | null
+          available_until?: string | null
+          created_at?: string
+          id?: string
+          league_id?: string
+          notes?: string | null
+          player_id?: string
+          priority?: string
+          status?: string
+          team_id?: string
+          trade_interest?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       training_programs: {
         Row: {
           active: boolean | null
@@ -877,6 +1279,51 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      waiver_wire: {
+        Row: {
+          claim_deadline: string
+          claimed_at: string | null
+          claimed_by_team_id: string | null
+          created_at: string
+          id: string
+          league_id: string
+          placed_by_team_id: string | null
+          player_id: string
+          reason: string | null
+          status: string
+          updated_at: string
+          waiver_priority: number
+        }
+        Insert: {
+          claim_deadline: string
+          claimed_at?: string | null
+          claimed_by_team_id?: string | null
+          created_at?: string
+          id?: string
+          league_id: string
+          placed_by_team_id?: string | null
+          player_id: string
+          reason?: string | null
+          status?: string
+          updated_at?: string
+          waiver_priority?: number
+        }
+        Update: {
+          claim_deadline?: string
+          claimed_at?: string | null
+          claimed_by_team_id?: string | null
+          created_at?: string
+          id?: string
+          league_id?: string
+          placed_by_team_id?: string | null
+          player_id?: string
+          reason?: string | null
+          status?: string
+          updated_at?: string
+          waiver_priority?: number
         }
         Relationships: []
       }
