@@ -19,6 +19,7 @@ import heroImage from "@/assets/hockey-arena-hero.jpg";
 
 const Index = () => {
   const { user, signOut } = useAuth();
+  console.log("Index component loaded, user:", user); // Debug log to force refresh
   const features = [
     {
       icon: Shield,
