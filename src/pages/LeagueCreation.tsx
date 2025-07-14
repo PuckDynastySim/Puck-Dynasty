@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   CalendarIcon, 
   Trophy, 
@@ -17,12 +21,19 @@ import {
   Settings, 
   Info,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export default function LeagueCreation() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  
   const [leagueData, setLeagueData] = useState({
     name: "",
     type: "pro" as "pro" | "farm" | "junior",
@@ -37,7 +48,9 @@ export default function LeagueCreation() {
     enableDraft: true,
     maxTeams: 30,
     divisionsEnabled: true,
-    conferencesEnabled: true
+    conferencesEnabled: true,
+    numConferences: 2,
+    numDivisions: 4
   });
 
   const leagueTypes = [
@@ -53,10 +66,71 @@ export default function LeagueCreation() {
     { label: "No Cap", value: 999999999 }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here we would integrate with Supabase to create the league
-    console.log("Creating league:", leagueData);
+    
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create a league.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!leagueData.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "League name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Create the league
+      const { data: league, error: leagueError } = await supabase
+        .from("leagues")
+        .insert([
+          {
+            name: leagueData.name.trim(),
+            league_type: leagueData.type,
+            commissioner_id: user.id,
+            salary_cap: leagueData.salaryCap,
+            min_age: leagueData.minAge,
+            max_age: leagueData.maxAge,
+            season_start_date: leagueData.seasonStartDate.toISOString().split('T')[0],
+            games_per_team: leagueData.gamesPerTeam,
+            is_active: true
+          }
+        ])
+        .select()
+        .single();
+
+      if (leagueError) {
+        throw leagueError;
+      }
+
+      toast({
+        title: "League Created Successfully!",
+        description: `${leagueData.name} has been created with you as commissioner.`,
+      });
+
+      // Navigate to the admin dashboard
+      navigate("/admin");
+
+    } catch (error) {
+      console.error("Error creating league:", error);
+      toast({
+        title: "Error Creating League",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -155,6 +229,7 @@ export default function LeagueCreation() {
                       selected={leagueData.seasonStartDate}
                       onSelect={(date) => date && setLeagueData({...leagueData, seasonStartDate: date})}
                       initialFocus
+                      className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
@@ -315,6 +390,20 @@ export default function LeagueCreation() {
                     />
                   </div>
 
+                  {leagueData.divisionsEnabled && (
+                    <div className="space-y-2 ml-4">
+                      <Label htmlFor="numDivisions">Number of Divisions</Label>
+                      <Input
+                        id="numDivisions"
+                        type="number"
+                        min="2"
+                        max="8"
+                        value={leagueData.numDivisions}
+                        onChange={(e) => setLeagueData({...leagueData, numDivisions: parseInt(e.target.value)})}
+                      />
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Conferences</Label>
@@ -325,6 +414,20 @@ export default function LeagueCreation() {
                       onCheckedChange={(checked) => setLeagueData({...leagueData, conferencesEnabled: checked})}
                     />
                   </div>
+
+                  {leagueData.conferencesEnabled && (
+                    <div className="space-y-2 ml-4">
+                      <Label htmlFor="numConferences">Number of Conferences</Label>
+                      <Input
+                        id="numConferences"
+                        type="number"
+                        min="2"
+                        max="4"
+                        value={leagueData.numConferences}
+                        onChange={(e) => setLeagueData({...leagueData, numConferences: parseInt(e.target.value)})}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -335,9 +438,13 @@ export default function LeagueCreation() {
             <Button type="button" variant="outline" asChild>
               <Link to="/admin">Cancel</Link>
             </Button>
-            <Button type="submit" className="btn-hockey">
-              <Plus className="w-4 h-4 mr-2" />
-              Create League
+            <Button type="submit" className="btn-hockey" disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
+              {isLoading ? "Creating League..." : "Create League"}
             </Button>
           </div>
         </form>
