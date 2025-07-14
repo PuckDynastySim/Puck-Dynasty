@@ -40,6 +40,13 @@ interface Alert {
   action?: string;
 }
 
+interface RecentActivity {
+  action: string;
+  time: string;
+  badge: string;
+  timestamp: string;
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalLeagues: 0,
@@ -54,6 +61,7 @@ export default function AdminDashboard() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [leaguePhase, setLeaguePhase] = useState("Pre-Season");
   const [loading, setLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -129,6 +137,9 @@ export default function AdminDashboard() {
       }
       setAlerts(newAlerts);
 
+      // Load recent activity
+      await loadRecentActivity();
+
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       toast({
@@ -138,6 +149,144 @@ export default function AdminDashboard() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRecentActivity = async () => {
+    try {
+      const activities: RecentActivity[] = [];
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      // Get recent leagues
+      const { data: recentLeagues } = await supabase
+        .from('leagues')
+        .select('name, created_at')
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      recentLeagues?.forEach(league => {
+        activities.push({
+          action: `League "${league.name}" created`,
+          time: getRelativeTime(league.created_at),
+          badge: "League",
+          timestamp: league.created_at
+        });
+      });
+
+      // Get recent teams
+      const { data: recentTeams } = await supabase
+        .from('teams')
+        .select('name, city, created_at')
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      recentTeams?.forEach(team => {
+        activities.push({
+          action: `Team "${team.city} ${team.name}" created`,
+          time: getRelativeTime(team.created_at),
+          badge: "Team",
+          timestamp: team.created_at
+        });
+      });
+
+      // Get recent player generations (count by recent timestamps)
+      const { data: recentPlayers } = await supabase
+        .from('players')
+        .select('created_at')
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (recentPlayers && recentPlayers.length > 0) {
+        // Group players by creation time (within 1 hour windows)
+        const playerGroups: { [key: string]: number } = {};
+        recentPlayers.forEach(player => {
+          const hourKey = new Date(player.created_at).toISOString().slice(0, 13); // Hour precision
+          playerGroups[hourKey] = (playerGroups[hourKey] || 0) + 1;
+        });
+
+        // Add activities for significant player generations
+        Object.entries(playerGroups)
+          .sort(([a], [b]) => b.localeCompare(a))
+          .slice(0, 2)
+          .forEach(([hourKey, count]) => {
+            if (count >= 10) { // Only show if 10+ players generated
+              activities.push({
+                action: `${count} players generated`,
+                time: getRelativeTime(hourKey + ':00:00.000Z'),
+                badge: "Players",
+                timestamp: hourKey + ':00:00.000Z'
+              });
+            }
+          });
+      }
+
+      // Get recent games
+      const { data: recentGames } = await supabase
+        .from('games')
+        .select('created_at, status')
+        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const scheduledGames = recentGames?.filter(g => g.status === 'scheduled').length || 0;
+      const completedGames = recentGames?.filter(g => g.status === 'completed').length || 0;
+
+      if (scheduledGames > 0) {
+        const latestScheduled = recentGames?.find(g => g.status === 'scheduled');
+        if (latestScheduled) {
+          activities.push({
+            action: `${scheduledGames} games scheduled`,
+            time: getRelativeTime(latestScheduled.created_at),
+            badge: "Schedule",
+            timestamp: latestScheduled.created_at
+          });
+        }
+      }
+
+      if (completedGames > 0) {
+        const latestCompleted = recentGames?.find(g => g.status === 'completed');
+        if (latestCompleted) {
+          activities.push({
+            action: `${completedGames} games simulated`,
+            time: getRelativeTime(latestCompleted.created_at),
+            badge: "Simulation",
+            timestamp: latestCompleted.created_at
+          });
+        }
+      }
+
+      // Sort all activities by timestamp and take the most recent 4
+      const sortedActivities = activities
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 4);
+
+      setRecentActivity(sortedActivities);
+
+    } catch (error) {
+      console.error('Error loading recent activity:', error);
+      setRecentActivity([]); // Set empty array on error
+    }
+  };
+
+  const getRelativeTime = (timestamp: string): string => {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds} seconds ago`;
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days !== 1 ? 's' : ''} ago`;
     }
   };
 
@@ -422,20 +571,23 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {[
-                  { action: "New league created", time: "2 minutes ago", badge: "League" },
-                  { action: "150 players generated", time: "5 minutes ago", badge: "Players" },
-                  { action: "Schedule built for NHL Pro", time: "12 minutes ago", badge: "Schedule" },
-                  { action: "Game simulation completed", time: "18 minutes ago", badge: "Simulation" },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="secondary">{activity.badge}</Badge>
-                      <span className="text-sm">{activity.action}</span>
+                {recentActivity.length > 0 ? (
+                  recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="secondary">{activity.badge}</Badge>
+                        <span className="text-sm">{activity.action}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{activity.time}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{activity.time}</span>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No recent activity</p>
+                    <p className="text-xs">Activity from the last 24 hours will appear here</p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
