@@ -180,18 +180,12 @@ const PlayerGenerator = () => {
       stats.movement = generateStat(5);
     }
 
-    // Calculate overall rating
-    const overallRating = Math.round(
-      Object.values(stats).reduce((sum: number, stat: number) => sum + stat, 0) / Object.values(stats).length
-    );
-
     return {
       first_name: firstName,
       last_name: lastName,
       age,
       nationality,
       player_position: position,
-      overall_rating: overallRating,
       ...stats
     };
   };
