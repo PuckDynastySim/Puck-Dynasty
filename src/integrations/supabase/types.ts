@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      arena_infrastructure: {
+        Row: {
+          arena_quality_rating: number | null
+          concession_stands: number | null
+          created_at: string
+          id: string
+          league_id: string
+          luxury_boxes: number | null
+          medical_facilities_level: number | null
+          seating_capacity: number | null
+          team_id: string
+          training_facilities_level: number | null
+          updated_at: string
+        }
+        Insert: {
+          arena_quality_rating?: number | null
+          concession_stands?: number | null
+          created_at?: string
+          id?: string
+          league_id: string
+          luxury_boxes?: number | null
+          medical_facilities_level?: number | null
+          seating_capacity?: number | null
+          team_id: string
+          training_facilities_level?: number | null
+          updated_at?: string
+        }
+        Update: {
+          arena_quality_rating?: number | null
+          concession_stands?: number | null
+          created_at?: string
+          id?: string
+          league_id?: string
+          luxury_boxes?: number | null
+          medical_facilities_level?: number | null
+          seating_capacity?: number | null
+          team_id?: string
+          training_facilities_level?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coaches: {
         Row: {
           created_at: string | null
@@ -120,6 +162,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      game_revenue: {
+        Row: {
+          attendance: number | null
+          concession_revenue: number | null
+          created_at: string
+          game_id: string
+          id: string
+          luxury_boxes_sold: number | null
+          team_id: string
+          tickets_sold_lower: number | null
+          tickets_sold_premium: number | null
+          tickets_sold_upper: number | null
+          total_ticket_revenue: number | null
+        }
+        Insert: {
+          attendance?: number | null
+          concession_revenue?: number | null
+          created_at?: string
+          game_id: string
+          id?: string
+          luxury_boxes_sold?: number | null
+          team_id: string
+          tickets_sold_lower?: number | null
+          tickets_sold_premium?: number | null
+          tickets_sold_upper?: number | null
+          total_ticket_revenue?: number | null
+        }
+        Update: {
+          attendance?: number | null
+          concession_revenue?: number | null
+          created_at?: string
+          game_id?: string
+          id?: string
+          luxury_boxes_sold?: number | null
+          team_id?: string
+          tickets_sold_lower?: number | null
+          tickets_sold_premium?: number | null
+          tickets_sold_upper?: number | null
+          total_ticket_revenue?: number | null
+        }
+        Relationships: []
       }
       games: {
         Row: {
@@ -466,6 +550,57 @@ export type Database = {
         }
         Relationships: []
       }
+      team_finances: {
+        Row: {
+          arena_expenses: number | null
+          budget: number | null
+          concession_revenue: number | null
+          created_at: string
+          expenses_total: number | null
+          id: string
+          league_id: string
+          revenue_total: number | null
+          season_year: number
+          sponsorship_revenue: number | null
+          team_id: string
+          ticket_revenue: number | null
+          training_expenses: number | null
+          updated_at: string
+        }
+        Insert: {
+          arena_expenses?: number | null
+          budget?: number | null
+          concession_revenue?: number | null
+          created_at?: string
+          expenses_total?: number | null
+          id?: string
+          league_id: string
+          revenue_total?: number | null
+          season_year?: number
+          sponsorship_revenue?: number | null
+          team_id: string
+          ticket_revenue?: number | null
+          training_expenses?: number | null
+          updated_at?: string
+        }
+        Update: {
+          arena_expenses?: number | null
+          budget?: number | null
+          concession_revenue?: number | null
+          created_at?: string
+          expenses_total?: number | null
+          id?: string
+          league_id?: string
+          revenue_total?: number | null
+          season_year?: number
+          sponsorship_revenue?: number | null
+          team_id?: string
+          ticket_revenue?: number | null
+          training_expenses?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_lines: {
         Row: {
           created_at: string
@@ -606,6 +741,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ticket_pricing: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          lower_bowl_price: number | null
+          luxury_box_price: number | null
+          premium_price: number | null
+          season_year: number
+          team_id: string
+          updated_at: string
+          upper_bowl_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          lower_bowl_price?: number | null
+          luxury_box_price?: number | null
+          premium_price?: number | null
+          season_year?: number
+          team_id: string
+          updated_at?: string
+          upper_bowl_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          lower_bowl_price?: number | null
+          luxury_box_price?: number | null
+          premium_price?: number | null
+          season_year?: number
+          team_id?: string
+          updated_at?: string
+          upper_bowl_price?: number | null
+        }
+        Relationships: []
+      }
+      training_programs: {
+        Row: {
+          active: boolean | null
+          annual_cost: number
+          created_at: string
+          effectiveness_bonus: number | null
+          id: string
+          investment_level: number | null
+          league_id: string
+          program_type: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          annual_cost: number
+          created_at?: string
+          effectiveness_bonus?: number | null
+          id?: string
+          investment_level?: number | null
+          league_id: string
+          program_type: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          annual_cost?: number
+          created_at?: string
+          effectiveness_bonus?: number | null
+          id?: string
+          investment_level?: number | null
+          league_id?: string
+          program_type?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       transaction_log: {
         Row: {

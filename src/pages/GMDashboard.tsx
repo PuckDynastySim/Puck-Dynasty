@@ -12,6 +12,7 @@ import { RosterManagement } from "@/components/RosterManagement";
 import { LineBuilder } from "@/components/LineBuilder";
 import { TeamStrategy } from "@/components/TeamStrategy";
 import OrganizationView from "@/components/OrganizationView";
+import { FinanceDashboard } from "@/components/FinanceDashboard";
 
 type Team = Tables<"teams">;
 type Player = Tables<"players">;
@@ -176,6 +177,18 @@ const GMDashboard = () => {
     return 'text-red-500';
   };
 
+  const calculateSalaryCap = () => {
+    if (!league?.salary_cap) return 0;
+    return league.salary_cap;
+  };
+
+  const calculateCurrentPayroll = () => {
+    if (!players) return 0;
+    // This would need to be enhanced to fetch actual contract data
+    // For now, using a placeholder calculation
+    return players.length * 500000; // Average of $500k per player
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-6">
@@ -298,11 +311,12 @@ const GMDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="roster" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="organization">Organization</TabsTrigger>
             <TabsTrigger value="roster">Roster</TabsTrigger>
             <TabsTrigger value="lines">Lines</TabsTrigger>
             <TabsTrigger value="strategy">Strategy</TabsTrigger>
+            <TabsTrigger value="finance">Finance</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -329,6 +343,15 @@ const GMDashboard = () => {
             <TeamStrategy 
               teamId={team.id} 
               leagueId={league?.id || ''} 
+            />
+          </TabsContent>
+
+          <TabsContent value="finance" className="space-y-6">
+            <FinanceDashboard 
+              teamId={team.id} 
+              leagueId={league?.id || ''}
+              salaryCap={calculateSalaryCap()}
+              currentPayroll={calculateCurrentPayroll()}
             />
           </TabsContent>
 
