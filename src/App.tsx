@@ -8,6 +8,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import AdminDashboard from "./pages/AdminDashboard";
 import LeagueCreation from "./pages/LeagueCreation";
+import PlayerGenerator from "./pages/PlayerGenerator";
+import ScheduleBuilder from "./pages/ScheduleBuilder";
+import SimulationEngine from "./pages/SimulationEngine";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +34,26 @@ const App = () => (
             <Route path="/admin/leagues/new" element={
               <ProtectedRoute>
                 <LeagueCreation />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/players/generate" element={
+              <ProtectedRoute>
+                <PlayerGenerator />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/schedule/builder" element={
+              <ProtectedRoute>
+                <ScheduleBuilder />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/simulation" element={
+              <ProtectedRoute>
+                <SimulationEngine />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/simulation/engine" element={
+              <ProtectedRoute>
+                <SimulationEngine />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

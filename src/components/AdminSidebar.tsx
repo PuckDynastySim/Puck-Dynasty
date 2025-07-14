@@ -28,12 +28,12 @@ import {
 
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: Shield, description: "Overview & Quick Actions" },
-  { title: "League Settings", url: "/admin/leagues", icon: Settings, description: "Configure League Parameters" },
+  { title: "League Settings", url: "/admin/leagues/new", icon: Settings, description: "Configure League Parameters" },
   { title: "Team Management", url: "/admin/teams", icon: Trophy, description: "Create & Manage Teams" },
-  { title: "Player Generator", url: "/admin/players", icon: Users, description: "Generate Fictional Players" },
+  { title: "Player Generator", url: "/admin/players/generate", icon: Users, description: "Generate Fictional Players" },
   { title: "Coach Generator", url: "/admin/coaches", icon: UserPlus, description: "Create Coaching Staff" },
-  { title: "Schedule Builder", url: "/admin/schedule", icon: Calendar, description: "Build Game Schedules" },
-  { title: "Simulation Control", url: "/admin/simulation", icon: Play, description: "Run Game Simulations" },
+  { title: "Schedule Builder", url: "/admin/schedule/builder", icon: Calendar, description: "Build Game Schedules" },
+  { title: "Simulation Engine", url: "/admin/simulation", icon: Play, description: "Run Game Simulations" },
   { title: "User Management", url: "/admin/users", icon: Database, description: "Manage GMs & Users" },
   { title: "Reports & Stats", url: "/admin/reports", icon: FileText, description: "League Analytics" },
 ];
