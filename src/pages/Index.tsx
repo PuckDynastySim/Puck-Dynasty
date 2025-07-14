@@ -11,11 +11,14 @@ import {
   ArrowRight,
   Star,
   Clock,
-  Database
+  Database,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import heroImage from "@/assets/hockey-arena-hero.jpg";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
   const features = [
     {
       icon: Shield,
@@ -86,17 +89,40 @@ const Index = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="btn-hockey text-lg px-8 py-4">
-                  <Link to="/admin">
-                    <Shield className="w-5 h-5 mr-2" />
-                    Access Admin Panel
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-primary/20">
-                  <Star className="w-5 h-5 mr-2" />
-                  View Features
-                </Button>
+                {user ? (
+                  <>
+                    <Button asChild size="lg" className="btn-hockey text-lg px-8 py-4">
+                      <Link to="/admin">
+                        <Shield className="w-5 h-5 mr-2" />
+                        Access Admin Panel
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Link>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="text-lg px-8 py-4 border-primary/20"
+                      onClick={signOut}
+                    >
+                      <LogOut className="w-5 h-5 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="btn-hockey text-lg px-8 py-4">
+                      <Link to="/auth">
+                        <Shield className="w-5 h-5 mr-2" />
+                        Sign In / Register
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-primary/20">
+                      <Star className="w-5 h-5 mr-2" />
+                      View Features
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
@@ -154,9 +180,9 @@ const Index = () => {
 
           <div className="text-center mt-16">
             <Button asChild size="lg" className="btn-hockey text-lg px-8 py-4">
-              <Link to="/admin">
+              <Link to={user ? "/admin" : "/auth"}>
                 <Shield className="w-5 h-5 mr-2" />
-                Start Managing Your League
+                {user ? "Start Managing Your League" : "Sign In to Get Started"}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
