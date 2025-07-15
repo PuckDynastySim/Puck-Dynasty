@@ -192,7 +192,7 @@ export default function PlayerManagement() {
       nationality: player.nationality,
       player_position: player.player_position,
       status: player.status,
-      team_id: player.team_id || "free-agent",
+      team_id: player.team_id || "free_agents",
       shooting: player.shooting || 50,
       passing: player.passing || 50,
       defense: player.defense || 50,
@@ -218,7 +218,7 @@ export default function PlayerManagement() {
     try {
       const updateData = {
         ...editForm,
-        team_id: editForm.team_id === "free-agent" ? null : editForm.team_id
+        team_id: editForm.team_id === "free_agents" ? null : editForm.team_id
       };
       
       const { error } = await supabase
@@ -598,7 +598,7 @@ export default function PlayerManagement() {
                       <SelectValue placeholder="Free Agent" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="free-agent">Free Agent</SelectItem>
+                      <SelectItem value="free_agents">Free Agent</SelectItem>
                       {teams.filter(team => team.league_id === selectedPlayer?.league_id).map(team => (
                         <SelectItem key={team.id} value={team.id}>
                           {team.city} {team.name}
