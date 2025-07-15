@@ -878,9 +878,9 @@ const SimulationEngine = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {loading ? (
-                        <SelectItem value="" disabled>Loading games...</SelectItem>
+                        <SelectItem value="loading" disabled>Loading games...</SelectItem>
                       ) : games.length === 0 ? (
-                        <SelectItem value="" disabled>No scheduled games found</SelectItem>
+                        <SelectItem value="no-games" disabled>No scheduled games found</SelectItem>
                       ) : (
                         games.map((game) => (
                           <SelectItem key={game.id} value={game.id}>
