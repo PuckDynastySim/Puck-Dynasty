@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { normalizeTeamId, denormalizeTeamId, filterByTeam, isValidTeamId } from "@/lib/teamUtils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,7 +193,7 @@ export default function PlayerManagement() {
       nationality: player.nationality,
       player_position: player.player_position,
       status: player.status,
-      team_id: player.team_id || "free_agents",
+      team_id: denormalizeTeamId(player.team_id),
       shooting: player.shooting || 50,
       passing: player.passing || 50,
       defense: player.defense || 50,
@@ -216,13 +217,20 @@ export default function PlayerManagement() {
     if (!selectedPlayer) return;
 
     try {
-      // Debug log to catch potential UUID errors
-      console.log('Updating player with team_id:', editForm.team_id);
+      // Validate team_id before processing
+      if (!isValidTeamId(editForm.team_id)) {
+        toast({
+          title: "Error",
+          description: "Invalid team selection",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const updateData = {
         ...editForm,
-        team_id: editForm.team_id === "free_agents" ? null : editForm.team_id
+        team_id: normalizeTeamId(editForm.team_id)
       };
-      console.log('Final updateData.team_id:', updateData.team_id);
       
       const { error } = await supabase
         .from('players')
