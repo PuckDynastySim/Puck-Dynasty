@@ -11,7 +11,9 @@ import LeagueCreation from "./pages/LeagueCreation";
 import UserManagement from "./pages/UserManagement";
 import TeamManagement from "./pages/TeamManagement";
 import PlayerGenerator from "./pages/PlayerGenerator";
+import PlayerManagement from "./pages/PlayerManagement";
 import CoachGenerator from "./pages/CoachGenerator";
+import CoachManagement from "./pages/CoachManagement";
 import Reports from "./pages/Reports";
 import LeagueStats from "./pages/LeagueStats";
 import LeagueHistory from "./pages/LeagueHistory";
@@ -53,6 +55,11 @@ const App = () => (
                 <TeamManagement />
               </ProtectedRoute>
             } />
+            <Route path="/admin/players" element={
+              <ProtectedRoute>
+                <PlayerManagement />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/players/generate" element={
               <ProtectedRoute>
                 <PlayerGenerator />
@@ -61,6 +68,11 @@ const App = () => (
             <Route path="/admin/coaches" element={
               <ProtectedRoute>
                 <CoachGenerator />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/coaches/manage" element={
+              <ProtectedRoute>
+                <CoachManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/reports" element={

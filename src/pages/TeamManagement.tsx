@@ -19,7 +19,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   Table,
   TableBody,
@@ -35,7 +46,9 @@ import {
   MapPin,
   Shield,
   RefreshCw,
-  Edit
+  Edit,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +105,9 @@ export default function TeamManagement() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [createTeamOpen, setCreateTeamOpen] = useState(false);
+  const [editTeamOpen, setEditTeamOpen] = useState(false);
+  const [deleteTeamOpen, setDeleteTeamOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const { toast } = useToast();
 
   const [newTeam, setNewTeam] = useState({
@@ -291,6 +307,128 @@ export default function TeamManagement() {
       toast({
         title: "Error",
         description: "Failed to create team",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditTeam = (team: Team) => {
+    setSelectedTeam(team);
+    setNewTeam({
+      name: team.name,
+      city: team.city,
+      abbreviation: team.abbreviation,
+      division: team.division || "",
+      conference: team.conference || "",
+      league_id: team.league_id,
+      gm_user_id: team.gm_user_id || "",
+      parent_team_id: team.parent_team_id || "",
+      is_ai_controlled: team.is_ai_controlled || false
+    });
+    setEditTeamOpen(true);
+  };
+
+  const handleUpdateTeam = async () => {
+    if (!selectedTeam || !newTeam.name || !newTeam.city) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('teams')
+        .update({
+          name: newTeam.name,
+          city: newTeam.city,
+          abbreviation: newTeam.abbreviation || newTeam.name.slice(0, 3).toUpperCase(),
+          division: newTeam.division || null,
+          conference: newTeam.conference || null,
+          gm_user_id: newTeam.is_ai_controlled ? null : (newTeam.gm_user_id === 'no_gm' ? null : newTeam.gm_user_id || null),
+          is_ai_controlled: newTeam.is_ai_controlled
+        })
+        .eq('id', selectedTeam.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Team updated successfully"
+      });
+
+      setEditTeamOpen(false);
+      setSelectedTeam(null);
+      setNewTeam({
+        name: "",
+        city: "",
+        abbreviation: "",
+        division: "",
+        conference: "",
+        league_id: "",
+        gm_user_id: "",
+        parent_team_id: "",
+        is_ai_controlled: false
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error updating team:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update team",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteTeam = (team: Team) => {
+    setSelectedTeam(team);
+    setDeleteTeamOpen(true);
+  };
+
+  const confirmDeleteTeam = async () => {
+    if (!selectedTeam) return;
+
+    try {
+      // Check if team has players
+      const { count: playerCount } = await supabase
+        .from('players')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', selectedTeam.id);
+
+      if (playerCount && playerCount > 0) {
+        toast({
+          title: "Cannot Delete Team",
+          description: `This team has ${playerCount} players. Please reassign or delete players first.`,
+          variant: "destructive"
+        });
+        setDeleteTeamOpen(false);
+        setSelectedTeam(null);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('teams')
+        .delete()
+        .eq('id', selectedTeam.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Team deleted successfully"
+      });
+
+      setDeleteTeamOpen(false);
+      setSelectedTeam(null);
+      loadData();
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete team",
         variant: "destructive"
       });
     }
@@ -629,9 +767,23 @@ export default function TeamManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline">
-                        <Edit className="w-3 h-3" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditTeam(team)}
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleDeleteTeam(team)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -639,6 +791,152 @@ export default function TeamManagement() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Edit Team Dialog */}
+        <Dialog open={editTeamOpen} onOpenChange={setEditTeamOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Team</DialogTitle>
+              <DialogDescription>
+                Update team information and settings
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-city">City *</Label>
+                  <Input
+                    id="edit-city"
+                    value={newTeam.city}
+                    onChange={(e) => setNewTeam({...newTeam, city: e.target.value})}
+                    placeholder="Boston"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-name">Team Name *</Label>
+                  <Input
+                    id="edit-name"
+                    value={newTeam.name}
+                    onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
+                    placeholder="Bruins"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-abbreviation">Abbreviation</Label>
+                  <Input
+                    id="edit-abbreviation"
+                    value={newTeam.abbreviation}
+                    onChange={(e) => setNewTeam({...newTeam, abbreviation: e.target.value})}
+                    placeholder="BOS"
+                    maxLength={4}
+                  />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-conference">Conference</Label>
+                  <Select value={newTeam.conference} onValueChange={(value) => setNewTeam({...newTeam, conference: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select conference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CONFERENCES.map(conf => (
+                        <SelectItem key={conf} value={conf}>
+                          {conf}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-division">Division</Label>
+                  <Select value={newTeam.division} onValueChange={(value) => setNewTeam({...newTeam, division: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select division" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DIVISIONS.map(div => (
+                        <SelectItem key={div} value={div}>
+                          {div}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="edit-ai-control">AI Controlled</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Team managed by AI instead of human GM
+                    </p>
+                  </div>
+                  <Switch
+                    id="edit-ai-control"
+                    checked={newTeam.is_ai_controlled}
+                    onCheckedChange={(checked) => setNewTeam({...newTeam, is_ai_controlled: checked, gm_user_id: checked ? "" : newTeam.gm_user_id})}
+                  />
+                </div>
+                {!newTeam.is_ai_controlled && (
+                  <div>
+                    <Label htmlFor="edit-gm">General Manager</Label>
+                    <Select value={newTeam.gm_user_id} onValueChange={(value) => setNewTeam({...newTeam, gm_user_id: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select GM (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no_gm">No GM (AI Controlled)</SelectItem>
+                        {users.map(user => (
+                          <SelectItem key={user.user_id} value={user.user_id}>
+                            {user.display_name || user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditTeamOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateTeam}>
+                Update Team
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Team Confirmation */}
+        <AlertDialog open={deleteTeamOpen} onOpenChange={setDeleteTeamOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                Delete Team
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{selectedTeam?.city} {selectedTeam?.name}"? 
+                This action cannot be undone and will remove all team data.
+                {selectedTeam?.player_count && selectedTeam.player_count > 0 && (
+                  <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded">
+                    <strong>Warning:</strong> This team has {selectedTeam.player_count} players. 
+                    You must reassign or delete these players before deleting the team.
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDeleteTeam}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Team
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
