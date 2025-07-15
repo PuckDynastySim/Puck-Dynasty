@@ -69,6 +69,7 @@ export default function UserManagement() {
   const [assignGMOpen, setAssignGMOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string>("");
+  const [creatingUser, setCreatingUser] = useState(false);
   const { toast } = useToast();
 
   const [newUser, setNewUser] = useState({
@@ -131,52 +132,62 @@ export default function UserManagement() {
   };
 
   const handleCreateUser = async () => {
+    if (!newUser.email || !newUser.password || !newUser.display_name) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCreatingUser(true);
+
     try {
-      // Create user account
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      console.log('Calling create-admin-user function with:', {
         email: newUser.email,
-        password: newUser.password,
-        email_confirm: true
+        display_name: newUser.display_name,
+        role: newUser.role
       });
 
-      if (authError) throw authError;
-
-      // Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authUser.user.id,
+      const { data, error } = await supabase.functions.invoke('create-admin-user', {
+        body: {
           email: newUser.email,
-          display_name: newUser.display_name
-        });
-
-      if (profileError) throw profileError;
-
-      // Assign role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authUser.user.id,
+          password: newUser.password,
+          display_name: newUser.display_name,
           role: newUser.role
-        });
+        }
+      });
 
-      if (roleError) throw roleError;
+      if (error) {
+        console.error('Function invocation error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('Function returned error:', data.error);
+        throw new Error(data.error);
+      }
+
+      console.log('User created successfully:', data);
 
       toast({
         title: "Success",
-        description: "User created successfully"
+        description: `User "${newUser.display_name}" created successfully`
       });
 
       setCreateUserOpen(false);
       setNewUser({ email: "", display_name: "", password: "", role: "gm" });
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating user:', error);
       toast({
         title: "Error",
-        description: "Failed to create user",
+        description: error.message || "Failed to create user",
         variant: "destructive"
       });
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -270,32 +281,35 @@ export default function UserManagement() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={newUser.email}
                     onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                     placeholder="user@example.com"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="display_name">Display Name</Label>
+                  <Label htmlFor="display_name">Display Name *</Label>
                   <Input
                     id="display_name"
                     value={newUser.display_name}
                     onChange={(e) => setNewUser({...newUser, display_name: e.target.value})}
                     placeholder="John Doe"
+                    required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="password">Temporary Password</Label>
+                  <Label htmlFor="password">Temporary Password *</Label>
                   <Input
                     id="password"
                     type="password"
                     value={newUser.password}
                     onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                     placeholder="Temporary password"
+                    required
                   />
                 </div>
                 <div>
@@ -311,8 +325,13 @@ export default function UserManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleCreateUser} className="w-full">
-                  Create User
+                <Button 
+                  onClick={handleCreateUser} 
+                  className="w-full"
+                  disabled={creatingUser}
+                >
+                  {creatingUser && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                  {creatingUser ? 'Creating User...' : 'Create User'}
                 </Button>
               </div>
             </DialogContent>
