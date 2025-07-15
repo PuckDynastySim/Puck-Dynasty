@@ -43,27 +43,27 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-            <div className="h-full flex items-center justify-between px-6">
+          <header className="h-16 border-b border-border/30 glass-card sticky top-0 z-10">
+            <div className="h-full flex items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-4">
-                <SidebarTrigger className="p-2 hover:bg-muted rounded-lg transition-colors" />
-                <div className="hidden md:block">
+                <SidebarTrigger className="p-2 hover:bg-muted/20 rounded-xl transition-all duration-200 interactive-scale" />
+                <div className="hidden sm:block">
                   <h1 className="text-lg font-semibold text-foreground">Puck Dynasty Sim</h1>
                   <p className="text-sm text-muted-foreground">Dynasty Command Center</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Notifications */}
-                <Button variant="ghost" size="sm" className="relative p-2">
+                <Button variant="ghost" size="sm" className="relative p-2 rounded-xl interactive-scale">
                   <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full animate-pulse-soft"></span>
                 </Button>
 
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="p-2 h-auto">
+                    <Button variant="ghost" className="p-2 h-auto rounded-xl interactive-scale">
                       <Avatar className="w-8 h-8">
                         <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                           AD
@@ -71,7 +71,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 glass-card border-border/30">
                     <DropdownMenuLabel>
                       <div className="flex flex-col">
                         <span className="font-medium">Admin User</span>
@@ -79,11 +79,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <DropdownMenuItem onClick={() => navigate('/profile')} className="interactive-scale">
                       <User className="w-4 h-4 mr-2" />
                       Profile Settings
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
+                    <DropdownMenuItem className="text-destructive interactive-scale" onClick={handleSignOut}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
@@ -94,7 +94,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
             {children}
           </main>
         </div>
