@@ -216,10 +216,13 @@ export default function PlayerManagement() {
     if (!selectedPlayer) return;
 
     try {
+      // Debug log to catch potential UUID errors
+      console.log('Updating player with team_id:', editForm.team_id);
       const updateData = {
         ...editForm,
         team_id: editForm.team_id === "free_agents" ? null : editForm.team_id
       };
+      console.log('Final updateData.team_id:', updateData.team_id);
       
       const { error } = await supabase
         .from('players')
