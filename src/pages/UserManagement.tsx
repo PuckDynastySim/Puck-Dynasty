@@ -159,31 +159,106 @@ export default function UserManagement() {
         }
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) {
         console.error('Function invocation error:', error);
-        throw error;
+        
+        // Handle different types of errors
+        let errorMessage = "Failed to create user";
+        let errorDetails = "";
+        
+        if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        // Check if it's a function execution error with details
+        if (data?.error) {
+          errorMessage = data.error;
+          errorDetails = data.details || "";
+        }
+        
+        // Provide specific guidance for common issues
+        if (errorMessage.includes('Service role key')) {
+          errorDetails = "Please check that SUPABASE_SERVICE_ROLE_KEY is properly configured in Edge Functions secrets.";
+        } else if (errorMessage.includes('email address has already been registered')) {
+          errorDetails = "This email is already in use. Please try a different email address.";
+        } else if (errorMessage.includes('configuration error')) {
+          errorDetails = "Server configuration issue. Please contact the administrator.";
+        }
+
+        toast({
+          title: "Error Creating User",
+          description: errorDetails || errorMessage,
+          variant: "destructive"
+        });
+        
+        return;
       }
 
       if (data?.error) {
-        console.error('Function returned error:', data.error);
-        throw new Error(data.error);
+        console.error('Function returned error:', data);
+        
+        let errorMessage = data.error;
+        let errorDetails = data.details || "";
+        
+        // Provide user-friendly error messages
+        if (data.code === 'email_exists' || errorMessage.includes('email address has already been registered')) {
+          errorMessage = "Email Already Registered";
+          errorDetails = "This email address is already registered. Please use a different email.";
+        } else if (data.code === 'weak_password') {
+          errorMessage = "Weak Password";
+          errorDetails = "Please choose a stronger password with at least 8 characters.";
+        } else if (errorMessage.includes('Service role key')) {
+          errorMessage = "Configuration Error";
+          errorDetails = "Server configuration issue. Please contact the administrator.";
+        }
+
+        toast({
+          title: errorMessage,
+          description: errorDetails,
+          variant: "destructive"
+        });
+        
+        return;
       }
 
-      console.log('User created successfully:', data);
+      if (!data?.success) {
+        console.error('Function did not return success:', data);
+        toast({
+          title: "Error",
+          description: "User creation failed for unknown reason",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('User created successfully:', data.user);
 
       toast({
         title: "Success",
-        description: `User "${newUser.display_name}" created successfully`
+        description: `User "${newUser.display_name}" created successfully with ${newUser.role} role`
       });
 
       setCreateUserOpen(false);
       setNewUser({ email: "", display_name: "", password: "", role: "gm" });
       loadData();
+      
     } catch (error: any) {
-      console.error('Error creating user:', error);
+      console.error('Unexpected error creating user:', error);
+      
+      let errorMessage = "An unexpected error occurred";
+      let errorDetails = error.message || "Please try again or contact support";
+      
+      // Handle network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = "Network Error";
+        errorDetails = "Unable to connect to the server. Please check your internet connection and try again.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to create user",
+        title: errorMessage,
+        description: errorDetails,
         variant: "destructive"
       });
     } finally {
