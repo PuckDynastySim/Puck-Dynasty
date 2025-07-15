@@ -162,7 +162,7 @@ export default function CoachManagement() {
       first_name: coach.first_name,
       last_name: coach.last_name,
       nationality: coach.nationality,
-      team_id: coach.team_id || "",
+      team_id: coach.team_id || "unassigned",
       offense_specialty: coach.offense_specialty,
       defense_specialty: coach.defense_specialty,
       powerplay_specialty: coach.powerplay_specialty,
@@ -177,9 +177,14 @@ export default function CoachManagement() {
     if (!selectedCoach) return;
 
     try {
+      const updateData = {
+        ...editForm,
+        team_id: editForm.team_id === "unassigned" ? null : editForm.team_id
+      };
+      
       const { error } = await supabase
         .from('coaches')
-        .update(editForm)
+        .update(updateData)
         .eq('id', selectedCoach.id);
 
       if (error) throw error;
@@ -238,8 +243,9 @@ export default function CoachManagement() {
 
   const filteredCoaches = coaches.filter(coach => {
     const matchesSearch = `${coach.first_name} ${coach.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTeam = !teamFilter || coach.team_id === teamFilter;
-    const matchesLeague = !leagueFilter || coach.league_id === leagueFilter;
+    const matchesTeam = !teamFilter || teamFilter === "all-teams" || 
+      (teamFilter === "unassigned" ? !coach.team_id : coach.team_id === teamFilter);
+    const matchesLeague = !leagueFilter || leagueFilter === "all-leagues" || coach.league_id === leagueFilter;
     
     return matchesSearch && matchesTeam && matchesLeague;
   });
@@ -299,7 +305,7 @@ export default function CoachManagement() {
                     <SelectValue placeholder="All leagues" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Leagues</SelectItem>
+                    <SelectItem value="all-leagues">All Leagues</SelectItem>
                     {leagues.map(league => (
                       <SelectItem key={league.id} value={league.id}>
                         <div className="flex items-center gap-2">
@@ -321,7 +327,7 @@ export default function CoachManagement() {
                     <SelectValue placeholder="All teams" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Teams</SelectItem>
+                    <SelectItem value="all-teams">All Teams</SelectItem>
                     <SelectItem value="unassigned">Unassigned</SelectItem>
                     {teams.map(team => (
                       <SelectItem key={team.id} value={team.id}>
@@ -490,7 +496,7 @@ export default function CoachManagement() {
                       <SelectValue placeholder="Unassigned" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
                       {teams.filter(team => team.league_id === selectedCoach?.league_id).map(team => (
                         <SelectItem key={team.id} value={team.id}>
                           {team.city} {team.name}
