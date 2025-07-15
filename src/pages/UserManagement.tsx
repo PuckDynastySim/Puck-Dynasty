@@ -85,45 +85,92 @@ export default function UserManagement() {
 
   const loadData = async () => {
     try {
+      console.log('Loading user management data...');
+      
       // Load users with their profiles and roles
-      const { data: profiles } = await supabase
+      console.log('Fetching profiles...');
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
+      
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw new Error(`Failed to load profiles: ${profilesError.message}`);
+      }
+      
+      console.log('Profiles loaded:', profiles?.length || 0);
 
       // Load user roles
-      const { data: userRoles } = await supabase
+      console.log('Fetching user roles...');
+      const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
+      
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        throw new Error(`Failed to load user roles: ${rolesError.message}`);
+      }
+      
+      console.log('User roles loaded:', userRoles?.length || 0);
 
       // Load teams
-      const { data: teamsData } = await supabase
+      console.log('Fetching teams...');
+      const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
         .select('*');
+      
+      if (teamsError) {
+        console.error('Error fetching teams:', teamsError);
+        throw new Error(`Failed to load teams: ${teamsError.message}`);
+      }
+      
+      console.log('Teams loaded:', teamsData?.length || 0);
 
       // Load leagues
-      const { data: leaguesData } = await supabase
+      console.log('Fetching leagues...');
+      const { data: leaguesData, error: leaguesError } = await supabase
         .from('leagues')
         .select('*');
+      
+      if (leaguesError) {
+        console.error('Error fetching leagues:', leaguesError);
+        throw new Error(`Failed to load leagues: ${leaguesError.message}`);
+      }
+      
+      console.log('Leagues loaded:', leaguesData?.length || 0);
 
       // Combine data
-      const usersWithRoles = profiles?.map(profile => ({
-        id: profile.user_id,
-        email: profile.email || '',
-        display_name: profile.display_name,
-        created_at: profile.created_at,
-        roles: userRoles?.filter(ur => ur.user_id === profile.user_id).map(ur => ur.role) || [],
-        assigned_team: teamsData?.find(t => t.gm_user_id === profile.user_id)?.name,
-        status: 'active' as const
-      })) || [];
+      const usersWithRoles = profiles?.map(profile => {
+        const userRolesForUser = userRoles?.filter(ur => ur.user_id === profile.user_id) || [];
+        const assignedTeam = teamsData?.find(t => t.gm_user_id === profile.user_id);
+        
+        return {
+          id: profile.user_id,
+          email: profile.email || '',
+          display_name: profile.display_name,
+          created_at: profile.created_at,
+          roles: userRolesForUser.map(ur => ur.role),
+          assigned_team: assignedTeam ? `${assignedTeam.city} ${assignedTeam.name}` : undefined,
+          status: 'active' as const
+        };
+      }) || [];
 
+      console.log('Combined users data:', usersWithRoles.length);
+      
       setUsers(usersWithRoles);
       setTeams(teamsData || []);
       setLeagues(leaguesData || []);
-    } catch (error) {
+      
+      toast({
+        title: "Data Loaded",
+        description: `Successfully loaded ${usersWithRoles.length} users, ${teamsData?.length || 0} teams`
+      });
+      
+    } catch (error: any) {
       console.error('Error loading data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load user data",
+        title: "Error Loading Data",
+        description: error.message || "Failed to load user management data",
         variant: "destructive"
       });
     } finally {
@@ -254,7 +301,9 @@ export default function UserManagement() {
 
       setCreateUserOpen(false);
       setNewUser({ email: "", display_name: "", password: "", role: "gm" });
-      loadData();
+      
+      // Reload data to show the new user
+      await loadData();
       
     } catch (error: any) {
       console.error('Unexpected error creating user:', error);
@@ -358,6 +407,14 @@ export default function UserManagement() {
               className="btn-hockey-outline"
             >
               Test Edge Function
+            </Button>
+            <Button
+              variant="outline"
+              onClick={loadData}
+              disabled={loading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh Data
             </Button>
             <Dialog open={createUserOpen} onOpenChange={setCreateUserOpen}>
               <DialogTrigger asChild>
@@ -482,75 +539,86 @@ export default function UserManagement() {
         {/* Users Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Users</CardTitle>
+            <CardTitle>Users ({users.length})</CardTitle>
             <CardDescription>Manage all users in the system</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Roles</TableHead>
-                  <TableHead>Assigned Team</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      {user.display_name || 'Unnamed User'}
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {user.roles.map(role => (
-                          <Badge key={role} variant="secondary">
-                            {role}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.assigned_team || 'None'}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                        {user.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setAssignGMOpen(true);
-                          }}
-                        >
-                          <Trophy className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleResetPassword(user.id)}
-                        >
-                          <RefreshCw className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => toggleUserStatus(user.id, user.status)}
-                        >
-                          {user.status === 'active' ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                        </Button>
-                      </div>
-                    </TableCell>
+            {users.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No users found. Try refreshing the data or check your permissions.</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Roles</TableHead>
+                    <TableHead>Assigned Team</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        {user.display_name || 'Unnamed User'}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {user.roles.length > 0 ? (
+                            user.roles.map(role => (
+                              <Badge key={role} variant="secondary">
+                                {role}
+                              </Badge>
+                            ))
+                          ) : (
+                            <Badge variant="outline">No roles</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.assigned_team || 'None'}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
+                          {user.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setAssignGMOpen(true);
+                            }}
+                          >
+                            <Trophy className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleResetPassword(user.id)}
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleUserStatus(user.id, user.status)}
+                          >
+                            {user.status === 'active' ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
