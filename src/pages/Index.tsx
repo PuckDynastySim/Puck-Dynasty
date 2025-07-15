@@ -73,21 +73,21 @@ const Index = () => {
             <div className="text-center max-w-4xl px-6">
               <div className="flex items-center justify-center gap-3 mb-6">
                 <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-                  <Zap className="w-8 h-8 text-primary-foreground" />
+                  <Trophy className="w-8 h-8 text-primary-foreground" />
                 </div>
                 <div className="text-left">
                   <h1 className="text-5xl md:text-7xl font-bold">
-                    <span className="text-foreground">Hockey</span>
-                    <span className="text-primary ml-4">Sim</span>
+                    <span className="text-foreground">Puck</span>
+                    <span className="text-primary ml-4">Dynasty</span>
                   </h1>
-                  <h2 className="text-2xl md:text-3xl text-muted-foreground">Central</h2>
+                  <h2 className="text-2xl md:text-3xl text-muted-foreground">Sim</h2>
                 </div>
               </div>
               
               <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-                The most advanced hockey simulation platform for creating and managing 
-                full-scale professional, farm, and junior hockey leagues with realistic 
-                player statistics and AI-powered game simulations.
+                Build your hockey dynasty with the most advanced simulation platform. 
+                Create and manage professional leagues, develop legendary players, and 
+                establish dynasties that span generations of hockey excellence.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -163,11 +163,11 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
-              Complete <span className="text-primary">Hockey League</span> Management
+              Build Your <span className="text-primary">Hockey Dynasty</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From league creation to game simulation, manage every aspect of your hockey simulation 
-              with our comprehensive admin tools and realistic game engine.
+              From dynasty foundation to championship glory, manage every aspect of your hockey empire 
+              with comprehensive management tools and realistic simulation engines.
             </p>
           </div>
 

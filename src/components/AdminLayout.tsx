@@ -48,8 +48,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="p-2 hover:bg-muted rounded-lg transition-colors" />
                 <div className="hidden md:block">
-                  <h1 className="text-lg font-semibold text-foreground">Hockey Simulation League</h1>
-                  <p className="text-sm text-muted-foreground">Administrator Dashboard</p>
+                  <h1 className="text-lg font-semibold text-foreground">Puck Dynasty Sim</h1>
+                  <p className="text-sm text-muted-foreground">Dynasty Command Center</p>
                 </div>
               </div>
 
@@ -75,7 +75,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <DropdownMenuLabel>
                       <div className="flex flex-col">
                         <span className="font-medium">Admin User</span>
-                        <span className="text-sm text-muted-foreground">admin@hockeysim.com</span>
+                        <span className="text-sm text-muted-foreground">admin@puckdynastysim.com</span>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />

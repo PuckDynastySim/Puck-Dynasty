@@ -71,18 +71,18 @@ export function AdminSidebar() {
           {!collapsed && (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-primary-foreground" />
+                <Trophy className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="font-bold text-lg text-sidebar-foreground">Hockey Sim</h2>
-                <p className="text-sm text-sidebar-foreground/70">Admin Control</p>
+                <h2 className="font-bold text-lg text-sidebar-foreground">Puck Dynasty</h2>
+                <p className="text-sm text-sidebar-foreground/70">Dynasty Control</p>
               </div>
             </div>
           )}
           {collapsed && (
             <div className="flex justify-center">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-primary-foreground" />
+                <Trophy className="w-6 h-6 text-primary-foreground" />
               </div>
             </div>
           )}
@@ -90,7 +90,7 @@ export function AdminSidebar() {
 
         <SidebarGroup className="px-3 py-4">
           <SidebarGroupLabel className={collapsed ? "sr-only" : "text-sidebar-foreground/60 font-semibold mb-2"}>
-            Admin Tools
+            Dynasty Tools
           </SidebarGroupLabel>
           
           <SidebarGroupContent>
