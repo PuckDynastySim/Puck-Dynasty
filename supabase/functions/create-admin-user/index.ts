@@ -12,6 +12,7 @@ interface CreateUserRequest {
   password: string;
   display_name: string;
   role: 'admin' | 'gm' | 'user';
+  debug?: boolean; // Add debug flag for testing
 }
 
 serve(async (req) => {
@@ -22,27 +23,27 @@ serve(async (req) => {
 
   try {
     console.log('=== Starting create-admin-user function ===');
+    console.log('Request method:', req.method);
+    console.log('Request URL:', req.url);
     
-    // Verify environment variables
+    // Environment variables check with detailed logging
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     console.log('Environment check:', {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!serviceRoleKey,
-      urlLength: supabaseUrl?.length || 0,
+      urlValue: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'missing',
+      keyPrefix: serviceRoleKey ? serviceRoleKey.substring(0, 10) : 'missing',
       keyLength: serviceRoleKey?.length || 0
     });
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('Missing environment variables:', {
-        SUPABASE_URL: !!supabaseUrl,
-        SUPABASE_SERVICE_ROLE_KEY: !!serviceRoleKey
-      });
+    if (!supabaseUrl) {
+      console.error('SUPABASE_URL is missing');
       return new Response(
         JSON.stringify({ 
-          error: 'Server configuration error: Missing environment variables',
-          details: 'SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured'
+          error: 'Server configuration error: SUPABASE_URL missing',
+          debug: 'Environment variable SUPABASE_URL is not set'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -51,7 +52,36 @@ serve(async (req) => {
       );
     }
 
-    // Parse request body
+    if (!serviceRoleKey) {
+      console.error('SUPABASE_SERVICE_ROLE_KEY is missing');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Server configuration error: Service role key missing',
+          debug: 'Environment variable SUPABASE_SERVICE_ROLE_KEY is not set in Edge Functions secrets'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
+    }
+
+    // Validate service role key format
+    if (!serviceRoleKey.startsWith('eyJ')) {
+      console.error('Service role key does not appear to be a JWT token');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Server configuration error: Invalid service role key format',
+          debug: 'Service role key should be a JWT token starting with "eyJ"'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
+    }
+
+    // Parse and validate request body
     let requestBody;
     try {
       requestBody = await req.json();
@@ -60,7 +90,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Invalid request body',
-          details: 'Request body must be valid JSON'
+          debug: `Request body must be valid JSON: ${error.message}`
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -69,27 +99,50 @@ serve(async (req) => {
       );
     }
 
-    const { email, password, display_name, role }: CreateUserRequest = requestBody;
+    const { email, password, display_name, role, debug }: CreateUserRequest = requestBody;
 
     console.log('Request data:', {
       email,
       display_name,
       role,
-      hasPassword: !!password
+      hasPassword: !!password,
+      debugMode: !!debug
     });
+
+    // If debug mode, return environment info without creating user
+    if (debug) {
+      console.log('Debug mode activated - returning environment info');
+      return new Response(
+        JSON.stringify({ 
+          debug: true,
+          environment: {
+            supabaseUrl: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'missing',
+            serviceKeyLength: serviceRoleKey?.length || 0,
+            serviceKeyPrefix: serviceRoleKey ? serviceRoleKey.substring(0, 10) : 'missing',
+            serviceKeyFormat: serviceRoleKey?.startsWith('eyJ') ? 'valid JWT format' : 'invalid format'
+          },
+          message: 'Debug info returned successfully'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
 
     // Validate required fields
     if (!email || !password || !display_name || !role) {
-      console.error('Missing required fields:', {
-        email: !!email,
-        password: !!password,
-        display_name: !!display_name,
-        role: !!role
-      });
+      const missing = [];
+      if (!email) missing.push('email');
+      if (!password) missing.push('password');
+      if (!display_name) missing.push('display_name');
+      if (!role) missing.push('role');
+      
+      console.error('Missing required fields:', missing);
       return new Response(
         JSON.stringify({ 
           error: 'Missing required fields',
-          details: 'email, password, display_name, and role are required'
+          debug: `Missing fields: ${missing.join(', ')}`
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -98,7 +151,7 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with service role key
+    // Create Supabase admin client
     console.log('Creating Supabase admin client...');
     const supabaseAdmin = createClient(
       supabaseUrl,
@@ -111,7 +164,7 @@ serve(async (req) => {
       }
     );
 
-    // Test service role permissions by attempting to list users
+    // Test service role permissions with detailed error logging
     console.log('Testing service role permissions...');
     try {
       const { data: testUsers, error: testError } = await supabaseAdmin.auth.admin.listUsers({
@@ -120,11 +173,22 @@ serve(async (req) => {
       });
       
       if (testError) {
-        console.error('Service role test failed:', testError);
+        console.error('Service role test failed:', {
+          error: testError,
+          message: testError.message,
+          status: testError.status,
+          code: testError.code
+        });
+        
         return new Response(
           JSON.stringify({ 
-            error: 'Service role key authentication failed',
-            details: testError.message
+            error: 'Service role authentication failed',
+            debug: `Auth admin access denied: ${testError.message}`,
+            details: {
+              errorCode: testError.code,
+              status: testError.status,
+              suggestion: 'Check that SUPABASE_SERVICE_ROLE_KEY has admin privileges'
+            }
           }),
           {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -133,19 +197,66 @@ serve(async (req) => {
         );
       }
       
-      console.log('Service role test successful, can access users');
+      console.log('Service role test successful - can access admin API');
+      console.log('Current user count:', testUsers?.length || 0);
+      
     } catch (error) {
       console.error('Service role test exception:', error);
       return new Response(
         JSON.stringify({ 
-          error: 'Service role key validation failed',
-          details: error.message
+          error: 'Service role validation failed',
+          debug: `Exception during auth test: ${error.message}`,
+          details: {
+            suggestion: 'Verify service role key is correct and has proper permissions'
+          }
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 403,
+          status: 500,
         }
       );
+    }
+
+    // Check if user with email already exists
+    console.log('Checking if user already exists...');
+    try {
+      const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (listError) {
+        console.error('Error checking existing users:', listError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to check existing users',
+            debug: `List users error: ${listError.message}`
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500,
+          }
+        );
+      }
+
+      const userExists = existingUsers?.users?.some(user => user.email === email);
+      if (userExists) {
+        console.log('User with email already exists:', email);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Email already registered',
+            debug: `A user with email ${email} already exists in the system`,
+            details: {
+              suggestion: 'Use a different email address or check existing users'
+            }
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 422,
+          }
+        );
+      }
+
+    } catch (error) {
+      console.error('Exception while checking existing users:', error);
+      // Continue with user creation - this check is not critical
     }
 
     console.log('Creating user with admin privileges...');
@@ -164,14 +275,17 @@ serve(async (req) => {
       console.error('User creation failed:', {
         message: authError.message,
         status: authError.status,
-        code: authError.code || 'unknown'
+        code: authError.code
       });
       
       return new Response(
         JSON.stringify({ 
           error: 'Failed to create user account',
-          details: authError.message,
-          code: authError.code
+          debug: `Auth service error: ${authError.message}`,
+          details: {
+            errorCode: authError.code,
+            status: authError.status
+          }
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -185,7 +299,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'User creation failed',
-          details: 'No user data returned from auth service'
+          debug: 'Auth service returned no user data'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -194,7 +308,10 @@ serve(async (req) => {
       );
     }
 
-    console.log('User created successfully:', authUser.user.id);
+    console.log('User created successfully:', {
+      userId: authUser.user.id,
+      email: authUser.user.email
+    });
 
     // Create profile
     console.log('Creating user profile...');
@@ -209,7 +326,7 @@ serve(async (req) => {
     if (profileError) {
       console.error('Profile creation failed:', profileError);
       
-      // Try to clean up the auth user if profile creation fails
+      // Clean up auth user
       try {
         await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
         console.log('Cleaned up auth user after profile creation failure');
@@ -220,7 +337,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Failed to create user profile',
-          details: profileError.message
+          debug: `Profile creation error: ${profileError.message}`,
+          details: profileError
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -243,7 +361,7 @@ serve(async (req) => {
     if (roleError) {
       console.error('Role assignment failed:', roleError);
       
-      // Try to clean up if role assignment fails
+      // Clean up profile and auth user
       try {
         await supabaseAdmin.from('profiles').delete().eq('user_id', authUser.user.id);
         await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
@@ -255,7 +373,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Failed to assign user role',
-          details: roleError.message
+          debug: `Role assignment error: ${roleError.message}`,
+          details: roleError
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -275,7 +394,8 @@ serve(async (req) => {
           email: authUser.user.email,
           display_name: display_name,
           role: role
-        }
+        },
+        debug: 'User created successfully with all components'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -293,8 +413,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        details: `Unexpected error: ${error.message}`,
-        type: error.name
+        debug: `Unexpected error: ${error.message}`,
+        details: {
+          type: error.name,
+          stack: error.stack
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

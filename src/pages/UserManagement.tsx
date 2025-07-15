@@ -131,6 +131,44 @@ export default function UserManagement() {
     }
   };
 
+  const handleDebugTest = async () => {
+    try {
+      console.log('Testing Edge Function with debug mode...');
+      
+      const { data, error } = await supabase.functions.invoke('create-admin-user', {
+        body: {
+          email: 'debug@test.com',
+          password: 'debug123',
+          display_name: 'Debug Test',
+          role: 'user',
+          debug: true // Enable debug mode
+        }
+      });
+
+      console.log('Debug test response:', { data, error });
+
+      if (error) {
+        toast({
+          title: "Debug Test Failed",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Debug Test Success",
+          description: `Environment check passed. Check console for details.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Debug test error:', error);
+      toast({
+        title: "Debug Test Error",
+        description: error.message || "Unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreateUser = async () => {
     if (!newUser.email || !newUser.password || !newUser.display_name) {
       toast({
@@ -164,32 +202,18 @@ export default function UserManagement() {
       if (error) {
         console.error('Function invocation error:', error);
         
-        // Handle different types of errors
         let errorMessage = "Failed to create user";
-        let errorDetails = "";
+        let errorDetails = error.message || "Unknown error occurred";
         
-        if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        // Check if it's a function execution error with details
+        // Check for function execution error with debug info
         if (data?.error) {
           errorMessage = data.error;
-          errorDetails = data.details || "";
-        }
-        
-        // Provide specific guidance for common issues
-        if (errorMessage.includes('Service role key')) {
-          errorDetails = "Please check that SUPABASE_SERVICE_ROLE_KEY is properly configured in Edge Functions secrets.";
-        } else if (errorMessage.includes('email address has already been registered')) {
-          errorDetails = "This email is already in use. Please try a different email address.";
-        } else if (errorMessage.includes('configuration error')) {
-          errorDetails = "Server configuration issue. Please contact the administrator.";
+          errorDetails = data.debug || data.details || "No additional details available";
         }
 
         toast({
-          title: "Error Creating User",
-          description: errorDetails || errorMessage,
+          title: errorMessage,
+          description: errorDetails,
           variant: "destructive"
         });
         
@@ -200,19 +224,7 @@ export default function UserManagement() {
         console.error('Function returned error:', data);
         
         let errorMessage = data.error;
-        let errorDetails = data.details || "";
-        
-        // Provide user-friendly error messages
-        if (data.code === 'email_exists' || errorMessage.includes('email address has already been registered')) {
-          errorMessage = "Email Already Registered";
-          errorDetails = "This email address is already registered. Please use a different email.";
-        } else if (data.code === 'weak_password') {
-          errorMessage = "Weak Password";
-          errorDetails = "Please choose a stronger password with at least 8 characters.";
-        } else if (errorMessage.includes('Service role key')) {
-          errorMessage = "Configuration Error";
-          errorDetails = "Server configuration issue. Please contact the administrator.";
-        }
+        let errorDetails = data.debug || data.details || "No additional details available";
 
         toast({
           title: errorMessage,
@@ -227,7 +239,7 @@ export default function UserManagement() {
         console.error('Function did not return success:', data);
         toast({
           title: "Error",
-          description: "User creation failed for unknown reason",
+          description: data?.debug || "User creation failed for unknown reason",
           variant: "destructive"
         });
         return;
@@ -250,7 +262,6 @@ export default function UserManagement() {
       let errorMessage = "An unexpected error occurred";
       let errorDetails = error.message || "Please try again or contact support";
       
-      // Handle network errors
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         errorMessage = "Network Error";
         errorDetails = "Unable to connect to the server. Please check your internet connection and try again.";
@@ -340,77 +351,86 @@ export default function UserManagement() {
             <h1 className="text-3xl font-bold">User & GM Management</h1>
             <p className="text-muted-foreground">Create, invite, and manage users and GMs for your leagues</p>
           </div>
-          <Dialog open={createUserOpen} onOpenChange={setCreateUserOpen}>
-            <DialogTrigger asChild>
-              <Button className="btn-hockey">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Create User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription>
-                  Add a new user to the system and assign their role
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                    placeholder="user@example.com"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="display_name">Display Name *</Label>
-                  <Input
-                    id="display_name"
-                    value={newUser.display_name}
-                    onChange={(e) => setNewUser({...newUser, display_name: e.target.value})}
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Temporary Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                    placeholder="Temporary password"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={newUser.role} onValueChange={(value: any) => setNewUser({...newUser, role: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="gm">GM</SelectItem>
-                      <SelectItem value="user">User</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button 
-                  onClick={handleCreateUser} 
-                  className="w-full"
-                  disabled={creatingUser}
-                >
-                  {creatingUser && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
-                  {creatingUser ? 'Creating User...' : 'Create User'}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleDebugTest}
+              className="btn-hockey-outline"
+            >
+              Test Edge Function
+            </Button>
+            <Dialog open={createUserOpen} onOpenChange={setCreateUserOpen}>
+              <DialogTrigger asChild>
+                <Button className="btn-hockey">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create User
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New User</DialogTitle>
+                  <DialogDescription>
+                    Add a new user to the system and assign their role
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                      placeholder="user@example.com"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="display_name">Display Name *</Label>
+                    <Input
+                      id="display_name"
+                      value={newUser.display_name}
+                      onChange={(e) => setNewUser({...newUser, display_name: e.target.value})}
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Temporary Password *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                      placeholder="Temporary password"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="role">Role</Label>
+                    <Select value={newUser.role} onValueChange={(value: any) => setNewUser({...newUser, role: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="gm">GM</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleCreateUser} 
+                    className="w-full"
+                    disabled={creatingUser}
+                  >
+                    {creatingUser && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                    {creatingUser ? 'Creating User...' : 'Create User'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Statistics Cards */}
