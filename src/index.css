@@ -269,15 +269,13 @@ All colors MUST be HSL. Hockey-themed with ice blues, rink whites, and team colo
     @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8;
   }
 
-  /* Hockey Theme Colors (Updated) */
-  .text-ice-blue { @apply text-ice-blue; }
-  .bg-ice-blue { @apply bg-ice-blue; }
-  .text-team-red { @apply text-team-red; }
-  .bg-team-red { @apply bg-team-red; }
-  .text-team-gold { @apply text-team-gold; }
-  .bg-team-gold { @apply bg-team-gold; }
-  .text-success-green { @apply text-success-green; }
-  .bg-success-green { @apply bg-success-green; }
+  /* Hockey Theme Colors - Use Tailwind's auto-generated utilities */
+  /* These are automatically generated from tailwind.config.ts color definitions:
+     - text-ice-blue, bg-ice-blue
+     - text-team-red, bg-team-red  
+     - text-team-gold, bg-team-gold
+     - text-success-green, bg-success-green
+   */
 
   /* Modern Rating System */
   .rating-elite {
