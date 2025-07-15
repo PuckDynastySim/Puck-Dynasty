@@ -192,7 +192,7 @@ export default function PlayerManagement() {
       nationality: player.nationality,
       player_position: player.player_position,
       status: player.status,
-      team_id: player.team_id || "",
+      team_id: player.team_id || "free-agent",
       shooting: player.shooting || 50,
       passing: player.passing || 50,
       defense: player.defense || 50,
@@ -216,9 +216,14 @@ export default function PlayerManagement() {
     if (!selectedPlayer) return;
 
     try {
+      const updateData = {
+        ...editForm,
+        team_id: editForm.team_id === "free-agent" ? null : editForm.team_id
+      };
+      
       const { error } = await supabase
         .from('players')
-        .update(editForm)
+        .update(updateData)
         .eq('id', selectedPlayer.id);
 
       if (error) throw error;
@@ -277,9 +282,10 @@ export default function PlayerManagement() {
 
   const filteredPlayers = players.filter(player => {
     const matchesSearch = `${player.first_name} ${player.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPosition = !positionFilter || player.player_position === positionFilter;
-    const matchesTeam = !teamFilter || player.team_id === teamFilter;
-    const matchesLeague = !leagueFilter || player.league_id === leagueFilter;
+    const matchesPosition = !positionFilter || positionFilter === "all-positions" || player.player_position === positionFilter;
+    const matchesTeam = !teamFilter || teamFilter === "all-teams" || 
+      (teamFilter === "free_agents" ? !player.team_id : player.team_id === teamFilter);
+    const matchesLeague = !leagueFilter || leagueFilter === "all-leagues" || player.league_id === leagueFilter;
     
     return matchesSearch && matchesPosition && matchesTeam && matchesLeague;
   });
@@ -339,7 +345,7 @@ export default function PlayerManagement() {
                     <SelectValue placeholder="All positions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Positions</SelectItem>
+                    <SelectItem value="all-positions">All Positions</SelectItem>
                     {positions.map(pos => (
                       <SelectItem key={pos} value={pos}>{pos}</SelectItem>
                     ))}
@@ -354,7 +360,7 @@ export default function PlayerManagement() {
                     <SelectValue placeholder="All leagues" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Leagues</SelectItem>
+                    <SelectItem value="all-leagues">All Leagues</SelectItem>
                     {leagues.map(league => (
                       <SelectItem key={league.id} value={league.id}>
                         <div className="flex items-center gap-2">
@@ -376,7 +382,7 @@ export default function PlayerManagement() {
                     <SelectValue placeholder="All teams" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Teams</SelectItem>
+                    <SelectItem value="all-teams">All Teams</SelectItem>
                     <SelectItem value="free_agents">Free Agents</SelectItem>
                     {teams.map(team => (
                       <SelectItem key={team.id} value={team.id}>
@@ -592,7 +598,7 @@ export default function PlayerManagement() {
                       <SelectValue placeholder="Free Agent" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Free Agent</SelectItem>
+                      <SelectItem value="free-agent">Free Agent</SelectItem>
                       {teams.filter(team => team.league_id === selectedPlayer?.league_id).map(team => (
                         <SelectItem key={team.id} value={team.id}>
                           {team.city} {team.name}
