@@ -226,7 +226,7 @@ const PlayerGenerator = () => {
       first_name: firstName,
       last_name: lastName,
       age,
-      nationality,
+      nationality: selectedNationality,
       player_position: position,
       ...stats
     };
