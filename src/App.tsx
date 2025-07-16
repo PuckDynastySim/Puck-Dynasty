@@ -36,62 +36,62 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
             <Route path="/admin/leagues/new" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <LeagueCreation />
               </ProtectedRoute>
             } />
             <Route path="/admin/users" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <UserManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/teams" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <TeamManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/players" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <PlayerManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/players/generate" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <PlayerGenerator />
               </ProtectedRoute>
             } />
             <Route path="/admin/coaches" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <CoachGenerator />
               </ProtectedRoute>
             } />
             <Route path="/admin/coaches/manage" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <CoachManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/reports" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <Reports />
               </ProtectedRoute>
             } />
             <Route path="/admin/schedule/builder" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <ScheduleBuilder />
               </ProtectedRoute>
             } />
             <Route path="/admin/simulation" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <SimulationEngine />
               </ProtectedRoute>
             } />
             <Route path="/gm" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['gm']}>
                 <GMDashboard />
               </ProtectedRoute>
             } />

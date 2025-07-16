@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -16,17 +17,15 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState("login");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, userRole, getRoleBasedRedirect } = useAuth();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/admin");
-      }
-    };
-    checkUser();
-  }, [navigate]);
+    // Check if user is already logged in and redirect based on role
+    if (user && userRole) {
+      const redirectPath = getRoleBasedRedirect();
+      navigate(redirectPath);
+    }
+  }, [user, userRole, navigate, getRoleBasedRedirect]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +47,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have been logged in successfully.",
       });
-      navigate("/admin");
+      // Navigation will be handled by useEffect when userRole is loaded
     }
     setLoading(false);
   };
