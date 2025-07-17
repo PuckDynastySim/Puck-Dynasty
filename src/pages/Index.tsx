@@ -16,10 +16,11 @@ import {
   LogOut
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import LoginPanel from "@/components/LoginPanel";
 import heroImage from "@/assets/hockey-arena-hero.jpg";
 
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const { user, userRole, signOut, getRoleBasedRedirect } = useAuth();
   console.log("Index component loaded, user:", user); // Debug log to force refresh
   const features = [
     {
@@ -89,13 +90,13 @@ const Index = () => {
                 establish dynasties that span generations of hockey excellence.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="flex flex-col items-center gap-8">
                 {user ? (
-                  <>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Button asChild className="btn-modern text-lg px-8 py-4 interactive-scale">
-                      <Link to="/admin">
-                        <Shield className="w-5 h-5 mr-2" />
-                        Access Admin Panel
+                      <Link to={getRoleBasedRedirect()}>
+                        {userRole === 'gm' ? <Users className="w-5 h-5 mr-2" /> : <Shield className="w-5 h-5 mr-2" />}
+                        {userRole === 'gm' ? 'Access GM Dashboard' : 'Access Admin Panel'}
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </Link>
                     </Button>
@@ -111,19 +112,22 @@ const Index = () => {
                         History
                       </Link>
                     </Button>
-                  </>
+                    <Button 
+                      onClick={() => signOut()} 
+                      className="btn-glass text-lg px-8 py-4 interactive-scale"
+                    >
+                      <LogOut className="w-5 h-5 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
                 ) : (
                   <>
-                    <Button asChild className="btn-modern text-lg px-8 py-4 interactive-scale">
-                      <Link to="/auth">
-                        <Shield className="w-5 h-5 mr-2" />
-                        Sign In / Register
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                      </Link>
-                    </Button>
+                    <div className="mb-6">
+                      <LoginPanel />
+                    </div>
                     <Button className="btn-glass text-lg px-8 py-4 interactive-scale">
                       <Star className="w-5 h-5 mr-2" />
-                      View Features
+                      View Features Below
                     </Button>
                   </>
                 )}
@@ -187,9 +191,9 @@ const Index = () => {
 
           <div className="text-center mt-16 sm:mt-20">
             <Button asChild className="btn-modern text-lg px-10 py-4 interactive-scale">
-              <Link to={user ? "/admin" : "/auth"}>
-                <Shield className="w-5 h-5 mr-2" />
-                {user ? "Start Managing Your League" : "Sign In to Get Started"}
+              <Link to={user ? getRoleBasedRedirect() : "#"} onClick={!user ? (e) => e.preventDefault() : undefined}>
+                {userRole === 'gm' ? <Users className="w-5 h-5 mr-2" /> : <Shield className="w-5 h-5 mr-2" />}
+                {user ? (userRole === 'gm' ? "Manage Your Team" : "Start Managing Your League") : "Sign In Above to Get Started"}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
