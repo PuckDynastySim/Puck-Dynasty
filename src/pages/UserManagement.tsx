@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -330,12 +331,23 @@ export default function UserManagement() {
     if (!selectedUser || !selectedTeam) return;
 
     try {
+      console.log('Assigning GM:', selectedUser.id, 'to team:', selectedTeam);
+
+      // Update both gm_user_id and is_ai_controlled in the same transaction
       const { error } = await supabase
         .from('teams')
-        .update({ gm_user_id: selectedUser.id })
+        .update({ 
+          gm_user_id: selectedUser.id,
+          is_ai_controlled: false  // Set to false when assigning a human GM
+        })
         .eq('id', selectedTeam);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error assigning GM:', error);
+        throw error;
+      }
+
+      console.log('GM assigned successfully');
 
       toast({
         title: "Success",
@@ -346,11 +358,11 @@ export default function UserManagement() {
       setSelectedUser(null);
       setSelectedTeam("");
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning GM:', error);
       toast({
         title: "Error",
-        description: "Failed to assign GM",
+        description: error.message || "Failed to assign GM",
         variant: "destructive"
       });
     }
