@@ -118,6 +118,8 @@ export default function LeagueAlignment() {
 
   const loadConferencesAndDivisions = async () => {
     try {
+      console.log('Loading conferences for league:', selectedLeague);
+      
       // Load conferences
       const { data: conferenceData, error: conferenceError } = await supabase
         .from('conferences')
@@ -125,7 +127,12 @@ export default function LeagueAlignment() {
         .eq('league_id', selectedLeague)
         .order('name');
 
-      if (conferenceError) throw conferenceError;
+      if (conferenceError) {
+        console.error('Conference error:', conferenceError);
+        throw conferenceError;
+      }
+
+      console.log('Loaded conferences:', conferenceData);
 
       // Load divisions
       const { data: divisionData, error: divisionError } = await supabase
@@ -133,7 +140,12 @@ export default function LeagueAlignment() {
         .select('*')
         .order('name');
 
-      if (divisionError) throw divisionError;
+      if (divisionError) {
+        console.error('Division error:', divisionError);
+        throw divisionError;
+      }
+
+      console.log('Loaded divisions:', divisionData);
 
       setConferences(conferenceData || []);
       setDivisions(divisionData || []);
@@ -169,6 +181,8 @@ export default function LeagueAlignment() {
   };
 
   const handleCreateConference = async () => {
+    console.log('Creating conference:', { name: newConferenceName, league_id: selectedLeague });
+
     if (!selectedLeague) {
       toast({
         title: "Error",
@@ -215,6 +229,8 @@ export default function LeagueAlignment() {
         return;
       }
 
+      console.log('Conference created successfully:', data);
+
       toast({
         title: "Success",
         description: "Conference created successfully"
@@ -233,18 +249,59 @@ export default function LeagueAlignment() {
     }
   };
 
+  const handleEditConference = async () => {
+    if (!selectedConference || !newConferenceName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('conferences')
+        .update({ name: newConferenceName.trim() })
+        .eq('id', selectedConference.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Conference updated successfully"
+      });
+
+      setNewConferenceName("");
+      setEditConferenceDialog(false);
+      setSelectedConference(null);
+      loadConferencesAndDivisions();
+    } catch (error) {
+      console.error('Error updating conference:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update conference",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreateDivision = async () => {
-    if (!selectedConference) return;
+    if (!selectedConference || !newDivisionName.trim()) return;
 
     try {
       const { error } = await supabase
         .from('divisions')
         .insert([{ 
-          name: newDivisionName, 
+          name: newDivisionName.trim(), 
           conference_id: selectedConference.id 
         }]);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            title: "Error",
+            description: "A division with this name already exists in the selected conference",
+            variant: "destructive"
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast({
         title: "Success",
@@ -253,12 +310,43 @@ export default function LeagueAlignment() {
 
       setNewDivisionName("");
       setNewDivisionDialog(false);
+      setSelectedConference(null);
       loadConferencesAndDivisions();
     } catch (error) {
       console.error('Error creating division:', error);
       toast({
         title: "Error",
         description: "Failed to create division",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditDivision = async () => {
+    if (!selectedDivision || !newDivisionName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('divisions')
+        .update({ name: newDivisionName.trim() })
+        .eq('id', selectedDivision.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Division updated successfully"
+      });
+
+      setNewDivisionName("");
+      setEditDivisionDialog(false);
+      setSelectedDivision(null);
+      loadConferencesAndDivisions();
+    } catch (error) {
+      console.error('Error updating division:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update division",
         variant: "destructive"
       });
     }
@@ -340,7 +428,7 @@ export default function LeagueAlignment() {
                 </SelectContent>
               </Select>
 
-              <Button onClick={() => setNewConferenceDialog(true)}>
+              <Button onClick={() => setNewConferenceDialog(true)} disabled={!selectedLeague}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Conference
               </Button>
@@ -376,6 +464,7 @@ export default function LeagueAlignment() {
                     size="sm"
                     onClick={() => {
                       setSelectedConference(conference);
+                      setNewConferenceName(conference.name);
                       setEditConferenceDialog(true);
                     }}
                   >
@@ -412,6 +501,7 @@ export default function LeagueAlignment() {
                                 size="sm"
                                 onClick={() => {
                                   setSelectedDivision(division);
+                                  setNewDivisionName(division.name);
                                   setEditDivisionDialog(true);
                                 }}
                               >
@@ -438,6 +528,7 @@ export default function LeagueAlignment() {
                                   size="sm"
                                   onClick={() => {
                                     setSelectedTeam(team);
+                                    setSelectedDivisionId(division.id);
                                     setAssignTeamDialog(true);
                                   }}
                                 >
@@ -509,11 +600,47 @@ export default function LeagueAlignment() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setNewConferenceDialog(false)}>
+              <Button variant="outline" onClick={() => {
+                setNewConferenceDialog(false);
+                setNewConferenceName("");
+              }}>
                 Cancel
               </Button>
               <Button onClick={handleCreateConference}>
                 Create Conference
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Conference Dialog */}
+        <Dialog open={editConferenceDialog} onOpenChange={setEditConferenceDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Conference</DialogTitle>
+              <DialogDescription>Update the conference name</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit_conference_name">Conference Name</Label>
+                <Input
+                  id="edit_conference_name"
+                  value={newConferenceName}
+                  onChange={(e) => setNewConferenceName(e.target.value)}
+                  placeholder="Enter conference name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setEditConferenceDialog(false);
+                setNewConferenceName("");
+                setSelectedConference(null);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditConference}>
+                Update Conference
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -538,11 +665,48 @@ export default function LeagueAlignment() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setNewDivisionDialog(false)}>
+              <Button variant="outline" onClick={() => {
+                setNewDivisionDialog(false);
+                setNewDivisionName("");
+                setSelectedConference(null);
+              }}>
                 Cancel
               </Button>
               <Button onClick={handleCreateDivision}>
                 Create Division
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Division Dialog */}
+        <Dialog open={editDivisionDialog} onOpenChange={setEditDivisionDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Division</DialogTitle>
+              <DialogDescription>Update the division name</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit_division_name">Division Name</Label>
+                <Input
+                  id="edit_division_name"
+                  value={newDivisionName}
+                  onChange={(e) => setNewDivisionName(e.target.value)}
+                  placeholder="Enter division name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setEditDivisionDialog(false);
+                setNewDivisionName("");
+                setSelectedDivision(null);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditDivision}>
+                Update Division
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -567,9 +731,9 @@ export default function LeagueAlignment() {
                   <SelectContent>
                     {conferences.map(conference => (
                       <div key={conference.id}>
-                        <span className="text-sm font-medium px-2 py-1 block text-muted-foreground">
+                        <div className="text-sm font-medium px-2 py-1 text-muted-foreground">
                           {conference.name}
-                        </span>
+                        </div>
                         {divisions
                           .filter(division => division.conference_id === conference.id)
                           .map(division => (
@@ -584,7 +748,11 @@ export default function LeagueAlignment() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setAssignTeamDialog(false)}>
+              <Button variant="outline" onClick={() => {
+                setAssignTeamDialog(false);
+                setSelectedTeam(null);
+                setSelectedDivisionId("");
+              }}>
                 Cancel
               </Button>
               <Button onClick={handleAssignTeam}>
@@ -627,7 +795,9 @@ export default function LeagueAlignment() {
                     });
 
                     setDeleteConferenceDialog(false);
+                    setSelectedConference(null);
                     loadConferencesAndDivisions();
+                    loadTeams();
                   } catch (error) {
                     console.error('Error deleting conference:', error);
                     toast({
@@ -677,7 +847,9 @@ export default function LeagueAlignment() {
                     });
 
                     setDeleteDivisionDialog(false);
+                    setSelectedDivision(null);
                     loadConferencesAndDivisions();
+                    loadTeams();
                   } catch (error) {
                     console.error('Error deleting division:', error);
                     toast({

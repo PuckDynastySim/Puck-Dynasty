@@ -173,6 +173,70 @@ export type Database = {
           },
         ]
       }
+      conferences: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conferences_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      divisions: {
+        Row: {
+          conference_id: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          conference_id: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          conference_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "divisions_conference_id_fkey"
+            columns: ["conference_id"]
+            isOneToOne: false
+            referencedRelation: "conferences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       draft_history: {
         Row: {
           created_at: string
@@ -847,7 +911,7 @@ export type Database = {
           first_name: string
           flexibility: number | null
           id: string
-          injury_resistance: number | null
+          injury: number | null
           last_name: string
           league_id: string
           movement: number | null
@@ -876,7 +940,7 @@ export type Database = {
           first_name: string
           flexibility?: number | null
           id?: string
-          injury_resistance?: number | null
+          injury?: number | null
           last_name: string
           league_id: string
           movement?: number | null
@@ -905,7 +969,7 @@ export type Database = {
           first_name?: string
           flexibility?: number | null
           id?: string
-          injury_resistance?: number | null
+          injury?: number | null
           last_name?: string
           league_id?: string
           movement?: number | null
@@ -1346,6 +1410,7 @@ export type Database = {
           conference: string | null
           created_at: string | null
           division: string | null
+          division_id: string | null
           gm_user_id: string | null
           id: string
           is_ai_controlled: boolean
@@ -1360,6 +1425,7 @@ export type Database = {
           conference?: string | null
           created_at?: string | null
           division?: string | null
+          division_id?: string | null
           gm_user_id?: string | null
           id?: string
           is_ai_controlled?: boolean
@@ -1374,6 +1440,7 @@ export type Database = {
           conference?: string | null
           created_at?: string | null
           division?: string | null
+          division_id?: string | null
           gm_user_id?: string | null
           id?: string
           is_ai_controlled?: boolean
@@ -1383,6 +1450,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_division_id_fkey"
+            columns: ["division_id"]
+            isOneToOne: false
+            referencedRelation: "divisions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teams_league_id_fkey"
             columns: ["league_id"]
