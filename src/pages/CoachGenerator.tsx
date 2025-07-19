@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ export default function CoachGenerator() {
     }
   };
 
-  const generateRandomCoach = (): Coach => {
+  const generateRandomCoach = (): Omit<Coach, 'league_id'> => {
     const namesByNationality = {
       "Canada": {
         firstNames: ["Connor", "Tyler", "Jake", "Matt", "Ryan", "Brad", "Mike", "Steve", "Dave", "Mark", "Scott", "Kevin", "Jason", "Tom", "Dan"],
@@ -120,7 +121,19 @@ export default function CoachGenerator() {
   };
 
   const generateCoaches = () => {
-    const newCoaches = Array.from({ length: generationCount }, generateRandomCoach);
+    if (!selectedLeague) {
+      toast({
+        title: "Error",
+        description: "Please select a league first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newCoaches = Array.from({ length: generationCount }, () => ({
+      ...generateRandomCoach(),
+      league_id: selectedLeague
+    }));
     setCoaches(newCoaches);
     
     toast({
@@ -141,21 +154,16 @@ export default function CoachGenerator() {
 
     setLoading(true);
     try {
-      const coachesToSave = coaches.map(coach => ({
-        ...coach,
-        league_id: selectedLeague
-      }));
-
-      console.log('Saving coaches:', coachesToSave); // Debug log
+      console.log('Saving coaches:', coaches);
       
       const { data, error } = await supabase
         .from('coaches')
-        .insert(coachesToSave)
-        .select('*'); // Get the inserted data back
+        .insert(coaches)
+        .select('*');
 
       if (error) throw error;
       
-      console.log('Saved coaches:', data); // Debug log
+      console log('Saved coaches:', data);
 
       toast({
         title: "Success",
@@ -243,7 +251,7 @@ export default function CoachGenerator() {
               </div>
 
               <div className="flex items-end">
-                <Button onClick={generateCoaches} className="w-full">
+                <Button onClick={generateCoaches} className="w-full" disabled={!selectedLeague}>
                   <Wand2 className="w-4 h-4 mr-2" />
                   Generate Coaches
                 </Button>
