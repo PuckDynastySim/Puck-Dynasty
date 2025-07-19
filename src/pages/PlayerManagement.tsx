@@ -45,6 +45,7 @@ import {
 import { AdminLayout } from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface Player {
   id: string;
@@ -69,7 +70,7 @@ interface Player {
   discipline?: number;
   fighting?: number;
   flexibility?: number;
-  injury_resistance?: number;
+  injury?: number;
   fatigue?: number;
   rebound_control?: number;
   team_name?: string;
@@ -125,7 +126,7 @@ export default function PlayerManagement() {
     discipline: 50,
     fighting: 50,
     flexibility: 50,
-    injury_resistance: 50,
+    injury: 50,
     fatigue: 50,
     rebound_control: 50,
   });
@@ -206,7 +207,7 @@ export default function PlayerManagement() {
       discipline: player.discipline || 50,
       fighting: player.fighting || 50,
       flexibility: player.flexibility || 50,
-      injury_resistance: player.injury_resistance || 50,
+      injury: player.injury || 50,
       fatigue: player.fatigue || 50,
       rebound_control: player.rebound_control || 50,
     });
@@ -447,8 +448,13 @@ export default function PlayerManagement() {
                   <TableRow key={player.id}>
                     <TableCell className="font-medium">
                       <div>
-                        <div className="font-semibold">{player.first_name} {player.last_name}</div>
-                        <div className="text-sm text-muted-foreground">{player.nationality}</div>
+                        <Link 
+                          to={`/player-profile/${player.id}`} 
+                          className="hover:text-primary transition-colors"
+                        >
+                          <div className="font-semibold">{player.first_name} {player.last_name}</div>
+                          <div className="text-sm text-muted-foreground">{player.nationality}</div>
+                        </Link>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -627,7 +633,7 @@ export default function PlayerManagement() {
                   {[
                     'shooting', 'passing', 'defense', 'puck_control', 'checking', 'movement',
                     'vision', 'poise', 'aggressiveness', 'discipline', 'fighting', 'flexibility',
-                    'injury_resistance', 'fatigue', 'rebound_control'
+                    'injury', 'fatigue', 'rebound_control'
                   ].map((attr) => (
                     <div key={attr}>
                       <Label htmlFor={attr} className="capitalize">

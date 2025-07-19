@@ -31,6 +31,7 @@ import {
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: Shield, description: "Overview & Quick Actions" },
   { title: "League Settings", url: "/admin/leagues/new", icon: Settings, description: "Configure League Parameters" },
+  { title: "League Alignment", url: "/admin/leagues/alignment", icon: Settings, description: "Configure Conferences & Divisions" },
   { title: "Team Management", url: "/admin/teams", icon: Trophy, description: "Create & Manage Teams" },
   { title: "Player Management", url: "/admin/players", icon: Users, description: "Manage Player Rosters" },
   { title: "Player Generator", url: "/admin/players/generate", icon: Users, description: "Generate Fictional Players" },

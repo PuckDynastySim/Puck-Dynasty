@@ -111,29 +111,60 @@ export default function TeamManagement() {
 
   const loadData = async () => {
     try {
-      // Load teams with league and GM info
-      const { data: teamsData } = await supabase
-        .from('teams')
-        .select(`
-          *,
-          leagues(name, league_type),
-          profiles(display_name, email)
-        `)
-        .order('name');
-
-      // Load leagues
-      const { data: leaguesData } = await supabase
+      // First, let's get the leagues data
+      const { data: leaguesData, error: leaguesError } = await supabase
         .from('leagues')
         .select('*')
         .order('name');
+
+      if (leaguesError) {
+        console.error('Error fetching leagues:', leaguesError);
+        throw leaguesError;
+      }
+
+      // Then load teams with their relationships
+      // Load teams with league info only first
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select(`
+          *,
+          leagues!inner (
+            name,
+            league_type
+          )
+        `)
+        .order('name');
+
+      if (teamsError) {
+        console.error('Error fetching teams:', teamsError);
+        console.error('Full error details:', JSON.stringify(teamsError, null, 2));
+        throw teamsError;
+      }
+
+      // For now, we'll handle teams without detailed GM info
+      const gmData = teamsData?.reduce((acc: any, team) => {
+        if (team.gm_user_id) {
+          acc[team.gm_user_id] = {
+            display_name: 'GM',
+            email: 'Contact admin for details'
+          };
+        }
+        return acc;
+      }, {}) || {};
+
+      console.log('Raw leagues data:', leaguesData);
+      console.log('Raw teams data:', teamsData);
+      console.log('GM data:', gmData);
 
       const enrichedTeams = teamsData?.map(team => ({
         ...team,
         league_name: team.leagues?.name,
         league_type: team.leagues?.league_type,
-        gm_display_name: team.profiles?.display_name,
-        gm_email: team.profiles?.email,
+        gm_display_name: team.gm_user_id ? gmData[team.gm_user_id]?.display_name : undefined,
+        gm_email: team.gm_user_id ? gmData[team.gm_user_id]?.email : undefined,
       })) || [];
+
+      console.log('Enriched teams:', enrichedTeams); // Debug log
 
       setTeams(enrichedTeams);
       setLeagues(leaguesData || []);

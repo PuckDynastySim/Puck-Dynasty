@@ -23,7 +23,7 @@ interface Player {
   checking: number;
   fighting: number;
   discipline: number;
-  injury_resistance: number;
+  injury: number;
   fatigue: number;
   poise: number;
   movement: number;

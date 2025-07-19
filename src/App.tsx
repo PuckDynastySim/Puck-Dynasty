@@ -13,6 +13,7 @@ import UserManagement from "./pages/UserManagement";
 import TeamManagement from "./pages/TeamManagement";
 import PlayerGenerator from "./pages/PlayerGenerator";
 import PlayerManagement from "./pages/PlayerManagement";
+import PlayerProfile from "./pages/PlayerProfile";
 import CoachGenerator from "./pages/CoachGenerator";
 import CoachManagement from "./pages/CoachManagement";
 import Reports from "./pages/Reports";
@@ -20,6 +21,7 @@ import LeagueStats from "./pages/LeagueStats";
 import LeagueHistory from "./pages/LeagueHistory";
 import ScheduleBuilder from "./pages/ScheduleBuilder";
 import SimulationEngine from "./pages/SimulationEngine";
+import LeagueAlignment from "./pages/LeagueAlignment";
 import GMDashboard from "./pages/GMDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -46,6 +48,11 @@ const App = () => (
                 <LeagueCreation />
               </ProtectedRoute>
             } />
+            <Route path="/admin/leagues/alignment" element={
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
+                <LeagueAlignment />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/users" element={
               <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <UserManagement />
@@ -59,6 +66,11 @@ const App = () => (
             <Route path="/admin/players" element={
               <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
                 <PlayerManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/player-profile/:playerId" element={
+              <ProtectedRoute allowedRoles={['admin', 'commissioner']}>
+                <PlayerProfile />
               </ProtectedRoute>
             } />
             <Route path="/admin/players/generate" element={

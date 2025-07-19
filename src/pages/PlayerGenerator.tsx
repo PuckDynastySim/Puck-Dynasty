@@ -200,7 +200,7 @@ const PlayerGenerator = () => {
       discipline: generateStat(),
       fighting: generateStat(),
       flexibility: generateStat(),
-      injury_resistance: generateStat(),
+      injury: generateStat(),
       fatigue: generateStat(),
       rebound_control: position === 'G' ? generateStat(20) : generateStat(-10)
     };

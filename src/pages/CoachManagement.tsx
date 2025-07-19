@@ -112,34 +112,65 @@ export default function CoachManagement() {
   const loadData = async () => {
     try {
       // Load coaches with team and league info
-      const { data: coachesData } = await supabase
+      // First try to fetch all coaches
+      const { data: coachesData, error: coachesError } = await supabase
         .from('coaches')
         .select(`
           *,
-          teams(name, city, league_id),
-          leagues(name, league_type)
+          teams:team_id (
+            name, 
+            city, 
+            league_id
+          ),
+          leagues:league_id (
+            name, 
+            league_type
+          )
         `)
         .order('last_name');
 
+      if (coachesError) {
+        console.error('Error loading coaches:', coachesError);
+        throw coachesError;
+      }
+
+      console.log('Coaches data:', coachesData); // Debug log
+
       // Load teams
-      const { data: teamsData } = await supabase
+      const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
         .select('*')
         .order('name');
 
+      if (teamsError) {
+        console.error('Error loading teams:', teamsError);
+        throw teamsError;
+      }
+
       // Load leagues
-      const { data: leaguesData } = await supabase
+      const { data: leaguesData, error: leaguesError } = await supabase
         .from('leagues')
         .select('*')
         .order('name');
 
-      const enrichedCoaches = coachesData?.map(coach => ({
-        ...coach,
-        team_name: coach.teams?.name,
-        team_city: coach.teams?.city,
-        league_name: coach.leagues?.name,
-        league_type: coach.leagues?.league_type,
-      })) || [];
+      if (leaguesError) {
+        console.error('Error loading leagues:', leaguesError);
+        throw leaguesError;
+      }
+
+      console.log('Raw coaches data:', coachesData); // Debug log
+
+      const enrichedCoaches = coachesData?.map(coach => {
+        const enrichedCoach = {
+          ...coach,
+          team_name: coach.teams?.name,
+          team_city: coach.teams?.city,
+          league_name: coach.leagues?.name,
+          league_type: coach.leagues?.league_type,
+        };
+        console.log('Enriched coach:', enrichedCoach); // Debug log per coach
+        return enrichedCoach;
+      }) || [];
 
       setCoaches(enrichedCoaches);
       setTeams(teamsData || []);

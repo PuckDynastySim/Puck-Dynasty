@@ -44,13 +44,28 @@ BEGIN
 END;
 $$;
 
--- Add constraint to ensure junior teams are AI-controlled
-ALTER TABLE public.teams 
-ADD CONSTRAINT check_junior_teams_ai_controlled 
-CHECK (
-    (league_id IN (SELECT id FROM public.leagues WHERE league_type = 'junior') AND is_ai_controlled = true) OR
-    (league_id NOT IN (SELECT id FROM public.leagues WHERE league_type = 'junior'))
-);
+-- Function to ensure junior teams are AI-controlled
+CREATE OR REPLACE FUNCTION public.check_junior_teams_ai_controlled()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM public.leagues 
+        WHERE id = NEW.league_id 
+        AND league_type = 'junior'
+        AND NEW.is_ai_controlled = false
+    ) THEN
+        RAISE EXCEPTION 'Junior teams must be AI-controlled';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to enforce junior teams being AI-controlled
+CREATE TRIGGER enforce_junior_teams_ai_controlled
+    BEFORE INSERT OR UPDATE ON public.teams
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_junior_teams_ai_controlled();
 
 -- Prevent human GM assignment to AI-controlled teams
 ALTER TABLE public.teams 

@@ -69,7 +69,7 @@ CREATE TABLE public.players (
     team_id UUID REFERENCES public.teams(id) ON DELETE SET NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    position position NOT NULL,
+    player_position public.position NOT NULL,
     age INTEGER NOT NULL,
     nationality TEXT DEFAULT 'Canada',
     status player_status DEFAULT 'active',
@@ -96,7 +96,7 @@ CREATE TABLE public.players (
     -- Calculated overall rating
     overall_rating INTEGER GENERATED ALWAYS AS (
         CASE 
-            WHEN position = 'G' THEN 
+            WHEN player_position = 'G' THEN 
                 (discipline + injury_resistance + fatigue + poise + movement + rebound_control + vision + aggressiveness + puck_control + flexibility) / 10
             ELSE 
                 (discipline + injury_resistance + fatigue + passing + shooting + defense + puck_control + checking + fighting + poise) / 10

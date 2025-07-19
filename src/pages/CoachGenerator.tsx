@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Wand2, Trash2, Save } from "lucide-react";
+import { UserPlus, Wand2, Trash2, Save, RefreshCw } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,16 +21,55 @@ interface Coach {
   penalty_kill_specialty: number;
   line_management: number;
   motivation: number;
+  league_id: string;
+  team_id?: string;
+}
+
+interface League {
+  id: string;
+  name: string;
+  league_type: string;
 }
 
 export default function CoachGenerator() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
   const [selectedLeague, setSelectedLeague] = useState("");
   const [generationCount, setGenerationCount] = useState(5);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const nationalities = ["Canada", "USA", "Sweden", "Finland", "Russia", "Czech Republic", "Slovakia"];
+
+  useEffect(() => {
+    loadLeagues();
+  }, []);
+
+  const loadLeagues = async () => {
+    try {
+      const { data: leaguesData, error } = await supabase
+        .from('leagues')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+
+      if (leaguesData) {
+        setLeagues(leaguesData);
+        // If there's only one league, select it automatically
+        if (leaguesData.length === 1) {
+          setSelectedLeague(leaguesData[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading leagues:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load leagues",
+        variant: "destructive"
+      });
+    }
+  };
 
   const generateRandomCoach = (): Coach => {
     const namesByNationality = {
@@ -107,11 +146,16 @@ export default function CoachGenerator() {
         league_id: selectedLeague
       }));
 
-      const { error } = await supabase
+      console.log('Saving coaches:', coachesToSave); // Debug log
+      
+      const { data, error } = await supabase
         .from('coaches')
-        .insert(coachesToSave);
+        .insert(coachesToSave)
+        .select('*'); // Get the inserted data back
 
       if (error) throw error;
+      
+      console.log('Saved coaches:', data); // Debug log
 
       toast({
         title: "Success",
@@ -166,16 +210,24 @@ export default function CoachGenerator() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="league">Target League</Label>
-                <Select value={selectedLeague} onValueChange={setSelectedLeague}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select league" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="nhl-pro">NHL Pro</SelectItem>
-                    <SelectItem value="ahl-farm">AHL Farm</SelectItem>
-                    <SelectItem value="junior">Junior League</SelectItem>
-                  </SelectContent>
-                </Select>
+                {loading ? (
+                  <div className="flex items-center justify-center p-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  </div>
+                ) : (
+                  <Select value={selectedLeague} onValueChange={setSelectedLeague}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select league" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {leagues.map((league) => (
+                        <SelectItem key={league.id} value={league.id}>
+                          {league.name} ({league.league_type.toUpperCase()})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               
               <div className="space-y-2">
