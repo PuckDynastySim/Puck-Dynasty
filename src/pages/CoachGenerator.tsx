@@ -163,7 +163,7 @@ export default function CoachGenerator() {
 
       if (error) throw error;
       
-      console log('Saved coaches:', data);
+      console.log('Saved coaches:', data);
 
       toast({
         title: "Success",
