@@ -188,31 +188,32 @@ export default function LeagueAlignment() {
     }
 
     try {
-      const { data, error } = await supabase
+      console.log('Attempting to create conference with:', {
+        name: newConferenceName.trim(),
+        league_id: selectedLeague
+      });
+
+      const { data, error: insertError } = await supabase
         .from('conferences')
-        .insert([{ 
-          name: newConferenceName.trim(), 
-          league_id: selectedLeague 
-        }])
-        .select()
+        .insert({
+          name: newConferenceName.trim(),
+          league_id: selectedLeague
+        })
+        .select('*')
         .single();
 
-      if (error) {
-        console.error('Supabase error details:', error);
-        if (error.code === '23505') {
-          toast({
-            title: "Error",
-            description: "A conference with this name already exists in the selected league",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: `Failed to create conference: ${error.message}`,
-            variant: "destructive"
-          });
-        }
-        return;
+      if (insertError) {
+        console.error('Supabase error:', {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint
+        });
+        throw new Error(insertError.message);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from insert operation');
       }
 
       toast({
@@ -223,11 +224,16 @@ export default function LeagueAlignment() {
       setNewConferenceName("");
       setNewConferenceDialog(false);
       loadConferencesAndDivisions();
-    } catch (error) {
-      console.error('Error creating conference:', error);
+    } catch (error: any) {
+      console.error('Error creating conference:', {
+        error,
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       toast({
         title: "Error",
-        description: "Failed to create conference. An unexpected error occurred.",
+        description: `Failed to create conference: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }

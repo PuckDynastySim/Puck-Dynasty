@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { formatHeight, formatWeight } from "@/lib/playerPhysicalUtils";
 
 interface Player {
   id: string;
@@ -20,6 +21,8 @@ interface Player {
   status: 'active' | 'injured' | 'suspended' | 'retired';
   team_id?: string;
   league_id: string;
+  height?: number; // Height in inches
+  weight?: number; // Weight in pounds
   // Shared attributes
   discipline?: number;
   injury?: number;
@@ -246,7 +249,7 @@ export default function PlayerProfile() {
         </div>
 
         {/* Top Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Overall Rating</CardTitle>
@@ -269,11 +272,35 @@ export default function PlayerProfile() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Height</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {player.height ? formatHeight(player.height) : 'N/A'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Weight</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {player.weight ? formatWeight(player.weight) : 'N/A'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Team</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-xl font-bold">
                 {player.team_name ? (
                   <div className="text-sm">
                     <div className="font-medium">{player.team_city} {player.team_name}</div>

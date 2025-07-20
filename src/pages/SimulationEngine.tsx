@@ -16,6 +16,8 @@ interface Player {
   last_name: string;
   player_position: string;
   team_id?: string;
+  height?: number; // Height in inches
+  weight?: number; // Weight in pounds
   shooting: number;
   passing: number;
   puck_control: number;

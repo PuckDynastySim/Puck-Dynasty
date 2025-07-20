@@ -46,6 +46,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { formatHeight, formatWeight } from "@/lib/playerPhysicalUtils";
 
 interface Player {
   id: string;
@@ -58,6 +59,8 @@ interface Player {
   status: 'active' | 'injured' | 'suspended' | 'retired';
   team_id?: string;
   league_id: string;
+  height?: number; // Height in inches
+  weight?: number; // Weight in pounds
   shooting?: number;
   passing?: number;
   defense?: number;
@@ -436,6 +439,8 @@ export default function PlayerManagement() {
                   <TableHead>Player</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Age</TableHead>
+                  <TableHead>Height</TableHead>
+                  <TableHead>Weight</TableHead>
                   <TableHead>Team</TableHead>
                   <TableHead>League</TableHead>
                   <TableHead>Overall</TableHead>
@@ -461,6 +466,16 @@ export default function PlayerManagement() {
                       <Badge variant="outline">{player.player_position}</Badge>
                     </TableCell>
                     <TableCell>{player.age}</TableCell>
+                    <TableCell>
+                      <div className="text-sm text-muted-foreground">
+                        {player.height ? formatHeight(player.height) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-muted-foreground">
+                        {player.weight ? formatWeight(player.weight) : '-'}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {player.team_name ? (
                         <div className="text-sm">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ArrowUp, ArrowDown, AlertTriangle, DollarSign } from 'lucide-react';
+import { formatHeight, formatWeight } from '@/lib/playerPhysicalUtils';
 
 interface Player {
   id: string;
@@ -15,6 +16,8 @@ interface Player {
   player_position: string;
   age: number;
   overall_rating: number;
+  height?: number; // Height in inches
+  weight?: number; // Weight in pounds
   contract?: {
     salary: number;
     status: string;
@@ -303,6 +306,12 @@ export const RosterManagement: React.FC<RosterManagementProps> = ({ teamId, leag
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             <span>Age: {player.age}</span>
             <span>Overall: {player.overall_rating}</span>
+            {player.height && (
+              <span>{formatHeight(player.height)}</span>
+            )}
+            {player.weight && (
+              <span>{formatWeight(player.weight)}</span>
+            )}
             {player.contract && (
               <span className="flex items-center space-x-1">
                 <DollarSign className="h-3 w-3" />

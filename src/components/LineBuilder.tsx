@@ -14,6 +14,8 @@ interface Player {
   last_name: string;
   player_position: string;
   overall_rating: number;
+  height?: number; // Height in inches
+  weight?: number; // Weight in pounds
 }
 
 interface LineBuilderProps {

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPlus, Zap, Trophy, Users, Loader2, Shield, AlertCircle } from "lucide-react";
+import { generatePhysicalStats } from "@/lib/playerPhysicalUtils";
 
 const PlayerGenerator = () => {
   const [generating, setGenerating] = useState(false);
@@ -222,12 +223,17 @@ const PlayerGenerator = () => {
       stats.movement = generateStat(5);
     }
 
+    // Generate physical stats (height and weight) based on position
+    const physicalStats = generatePhysicalStats(position);
+
     return {
       first_name: firstName,
       last_name: lastName,
       age,
       nationality: selectedNationality,
       player_position: position,
+      height: physicalStats.height,
+      weight: physicalStats.weight,
       ...stats
     };
   };
