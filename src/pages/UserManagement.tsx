@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,25 +87,7 @@ export default function UserManagement() {
     try {
       console.log('Loading user management data...');
       
-      // Load users with their profiles and roles
-      console.log('Fetching profiles...');
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        toast({
-          title: "Error Loading Profiles",
-          description: profilesError.message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      console.log('Profiles loaded:', profiles?.length || 0);
-
-      // Load user roles
+      // Load user roles first
       console.log('Fetching user roles...');
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
@@ -123,6 +104,19 @@ export default function UserManagement() {
       }
       
       console.log('User roles loaded:', userRoles?.length || 0);
+
+      // Load profiles
+      console.log('Fetching profiles...');
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        // Don't return here, continue with empty profiles
+      }
+      
+      console.log('Profiles loaded:', profiles?.length || 0);
 
       // Load teams
       console.log('Fetching teams...');
@@ -150,23 +144,37 @@ export default function UserManagement() {
       
       console.log('Leagues loaded:', leaguesData?.length || 0);
 
-      // Combine data
-      const usersWithRoles = profiles?.map(profile => {
-        const userRolesForUser = userRoles?.filter(ur => ur.user_id === profile.user_id) || [];
-        const assignedTeam = teamsData?.find(t => t.gm_user_id === profile.user_id);
+      // Create a map of user roles for easier lookup
+      const rolesByUser = userRoles?.reduce((acc, role) => {
+        if (!acc[role.user_id]) {
+          acc[role.user_id] = [];
+        }
+        acc[role.user_id].push(role.role);
+        return acc;
+      }, {} as Record<string, string[]>) || {};
+
+      // Get all unique user IDs from roles (this ensures we catch all users with roles)
+      const allUserIds = [...new Set(userRoles?.map(role => role.user_id) || [])];
+      
+      // Create users array from roles and profiles
+      const usersWithRoles = allUserIds.map(userId => {
+        const profile = profiles?.find(p => p.user_id === userId);
+        const userRolesForUser = rolesByUser[userId] || [];
+        const assignedTeam = teamsData?.find(t => t.gm_user_id === userId);
         
         return {
-          id: profile.user_id,
-          email: profile.email || '',
-          display_name: profile.display_name,
-          created_at: profile.created_at,
-          roles: userRolesForUser.map(ur => ur.role),
+          id: userId,
+          email: profile?.email || 'No email found',
+          display_name: profile?.display_name || 'No name set',
+          created_at: profile?.created_at || new Date().toISOString(),
+          roles: userRolesForUser,
           assigned_team: assignedTeam ? `${assignedTeam.city} ${assignedTeam.name}` : undefined,
           status: 'active' as const
         };
-      }) || [];
+      });
 
       console.log('Combined users data:', usersWithRoles.length);
+      console.log('Users with roles:', usersWithRoles);
       
       setUsers(usersWithRoles);
       setTeams(teamsData || []);
@@ -274,10 +282,10 @@ export default function UserManagement() {
       setCreateUserOpen(false);
       setNewUser({ email: "", display_name: "", password: "", role: "gm" });
       
-      // Add a small delay before reloading to ensure database consistency
+      // Add a longer delay before reloading to ensure all database operations are complete
       setTimeout(() => {
         loadData();
-      }, 1000);
+      }, 2000);
       
     } catch (error: any) {
       console.error('Unexpected error creating user:', error);
