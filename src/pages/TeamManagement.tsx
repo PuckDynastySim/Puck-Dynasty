@@ -60,6 +60,7 @@ interface Team {
   league_id: string;
   conference?: string;
   division?: string;
+  division_id?: string;
   is_ai_controlled: boolean;
   gm_user_id?: string;
   parent_team_id?: string;
@@ -68,6 +69,8 @@ interface Team {
   league_type?: string;
   gm_display_name?: string;
   gm_email?: string;
+  conference_name?: string;
+  division_name?: string;
 }
 
 interface League {
@@ -76,9 +79,25 @@ interface League {
   league_type: string;
 }
 
+interface Conference {
+  id: string;
+  name: string;
+  league_id: string;
+}
+
+interface Division {
+  id: string;
+  name: string;
+  conference_id: string;
+}
+
 export default function TeamManagement() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
+  const [conferences, setConferences] = useState<Conference[]>([]);
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [availableConferences, setAvailableConferences] = useState<Conference[]>([]);
+  const [availableDivisions, setAvailableDivisions] = useState<Division[]>([]);
   const [loading, setLoading] = useState(true);
   const [createTeamOpen, setCreateTeamOpen] = useState(false);
   const [editTeamOpen, setEditTeamOpen] = useState(false);
@@ -91,8 +110,8 @@ export default function TeamManagement() {
     city: "",
     abbreviation: "",
     league_id: "",
-    conference: "",
-    division: "",
+    conference_id: "",
+    division_id: "",
     is_ai_controlled: true
   });
 
@@ -100,8 +119,8 @@ export default function TeamManagement() {
     name: "",
     city: "",
     abbreviation: "",
-    conference: "",
-    division: "",
+    conference_id: "",
+    division_id: "",
     is_ai_controlled: true
   });
 
@@ -111,19 +130,31 @@ export default function TeamManagement() {
 
   const loadData = async () => {
     try {
-      // First, let's get the leagues data
+      // Load leagues
       const { data: leaguesData, error: leaguesError } = await supabase
         .from('leagues')
         .select('*')
         .order('name');
 
-      if (leaguesError) {
-        console.error('Error fetching leagues:', leaguesError);
-        throw leaguesError;
-      }
+      if (leaguesError) throw leaguesError;
 
-      // Then load teams with their relationships
-      // Load teams with league info only first
+      // Load conferences
+      const { data: conferencesData, error: conferencesError } = await supabase
+        .from('conferences')
+        .select('*')
+        .order('name');
+
+      if (conferencesError) throw conferencesError;
+
+      // Load divisions
+      const { data: divisionsData, error: divisionsError } = await supabase
+        .from('divisions')
+        .select('*')
+        .order('name');
+
+      if (divisionsError) throw divisionsError;
+
+      // Load teams with enhanced joins
       const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
         .select(`
@@ -131,15 +162,19 @@ export default function TeamManagement() {
           leagues!inner (
             name,
             league_type
+          ),
+          divisions (
+            id,
+            name,
+            conferences (
+              id,
+              name
+            )
           )
         `)
         .order('name');
 
-      if (teamsError) {
-        console.error('Error fetching teams:', teamsError);
-        console.error('Full error details:', JSON.stringify(teamsError, null, 2));
-        throw teamsError;
-      }
+      if (teamsError) throw teamsError;
 
       // For now, we'll handle teams without detailed GM info
       const gmData = teamsData?.reduce((acc: any, team) => {
@@ -152,22 +187,20 @@ export default function TeamManagement() {
         return acc;
       }, {}) || {};
 
-      console.log('Raw leagues data:', leaguesData);
-      console.log('Raw teams data:', teamsData);
-      console.log('GM data:', gmData);
-
       const enrichedTeams = teamsData?.map(team => ({
         ...team,
         league_name: team.leagues?.name,
         league_type: team.leagues?.league_type,
+        conference_name: team.divisions?.conferences?.name || team.conference,
+        division_name: team.divisions?.name || team.division,
         gm_display_name: team.gm_user_id ? gmData[team.gm_user_id]?.display_name : undefined,
         gm_email: team.gm_user_id ? gmData[team.gm_user_id]?.email : undefined,
       })) || [];
 
-      console.log('Enriched teams:', enrichedTeams); // Debug log
-
       setTeams(enrichedTeams);
       setLeagues(leaguesData || []);
+      setConferences(conferencesData || []);
+      setDivisions(divisionsData || []);
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
@@ -177,6 +210,46 @@ export default function TeamManagement() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLeagueChange = (leagueId: string, isEdit = false) => {
+    const leagueConferences = conferences.filter(c => c.league_id === leagueId);
+    setAvailableConferences(leagueConferences);
+    setAvailableDivisions([]);
+    
+    if (isEdit) {
+      setEditForm(prev => ({
+        ...prev,
+        conference_id: "",
+        division_id: ""
+      }));
+    } else {
+      setNewTeam(prev => ({
+        ...prev,
+        league_id: leagueId,
+        conference_id: "",
+        division_id: ""
+      }));
+    }
+  };
+
+  const handleConferenceChange = (conferenceId: string, isEdit = false) => {
+    const conferenceDivisions = divisions.filter(d => d.conference_id === conferenceId);
+    setAvailableDivisions(conferenceDivisions);
+    
+    if (isEdit) {
+      setEditForm(prev => ({
+        ...prev,
+        conference_id: conferenceId,
+        division_id: ""
+      }));
+    } else {
+      setNewTeam(prev => ({
+        ...prev,
+        conference_id: conferenceId,
+        division_id: ""
+      }));
     }
   };
 
@@ -191,9 +264,18 @@ export default function TeamManagement() {
     }
 
     try {
+      const teamData = {
+        name: newTeam.name,
+        city: newTeam.city,
+        abbreviation: newTeam.abbreviation,
+        league_id: newTeam.league_id,
+        division_id: newTeam.division_id || null,
+        is_ai_controlled: newTeam.is_ai_controlled
+      };
+
       const { error } = await supabase
         .from('teams')
-        .insert([newTeam]);
+        .insert([teamData]);
 
       if (error) throw error;
 
@@ -208,10 +290,12 @@ export default function TeamManagement() {
         city: "",
         abbreviation: "",
         league_id: "",
-        conference: "",
-        division: "",
+        conference_id: "",
+        division_id: "",
         is_ai_controlled: true
       });
+      setAvailableConferences([]);
+      setAvailableDivisions([]);
       loadData();
     } catch (error) {
       console.error('Error creating team:', error);
@@ -229,10 +313,26 @@ export default function TeamManagement() {
       name: team.name,
       city: team.city,
       abbreviation: team.abbreviation,
-      conference: team.conference || "",
-      division: team.division || "",
+      conference_id: team.division_id ? 
+        divisions.find(d => d.id === team.division_id)?.conference_id || "" : "",
+      division_id: team.division_id || "",
       is_ai_controlled: team.is_ai_controlled
     });
+
+    // Set up cascading dropdowns for edit
+    if (team.league_id) {
+      const leagueConferences = conferences.filter(c => c.league_id === team.league_id);
+      setAvailableConferences(leagueConferences);
+      
+      if (team.division_id) {
+        const division = divisions.find(d => d.id === team.division_id);
+        if (division) {
+          const conferenceDivisions = divisions.filter(d => d.conference_id === division.conference_id);
+          setAvailableDivisions(conferenceDivisions);
+        }
+      }
+    }
+
     setEditTeamOpen(true);
   };
 
@@ -240,9 +340,17 @@ export default function TeamManagement() {
     if (!selectedTeam) return;
 
     try {
+      const updateData = {
+        name: editForm.name,
+        city: editForm.city,
+        abbreviation: editForm.abbreviation,
+        division_id: editForm.division_id || null,
+        is_ai_controlled: editForm.is_ai_controlled
+      };
+
       const { error } = await supabase
         .from('teams')
-        .update(editForm)
+        .update(updateData)
         .eq('id', selectedTeam.id);
 
       if (error) throw error;
@@ -254,6 +362,8 @@ export default function TeamManagement() {
 
       setEditTeamOpen(false);
       setSelectedTeam(null);
+      setAvailableConferences([]);
+      setAvailableDivisions([]);
       loadData();
     } catch (error) {
       console.error('Error updating team:', error);
@@ -301,8 +411,6 @@ export default function TeamManagement() {
 
   const fixAIControlStatus = async (teamId: string, hasGM: boolean) => {
     try {
-      // If team has a GM, set is_ai_controlled to false
-      // If team has no GM, set is_ai_controlled to true
       const { error } = await supabase
         .from('teams')
         .update({ is_ai_controlled: !hasGM })
@@ -330,7 +438,6 @@ export default function TeamManagement() {
     const hasGM = !!team.gm_user_id;
     const isAIControlled = team.is_ai_controlled;
     
-    // Check for inconsistent state
     if (hasGM && isAIControlled) {
       return (
         <div className="flex items-center gap-2">
@@ -436,7 +543,7 @@ export default function TeamManagement() {
                   </div>
                   <div>
                     <Label htmlFor="league">League *</Label>
-                    <Select value={newTeam.league_id} onValueChange={(value) => setNewTeam({...newTeam, league_id: value})}>
+                    <Select value={newTeam.league_id} onValueChange={(value) => handleLeagueChange(value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select league" />
                       </SelectTrigger>
@@ -458,21 +565,41 @@ export default function TeamManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="conference">Conference</Label>
-                    <Input
-                      id="conference"
-                      value={newTeam.conference}
-                      onChange={(e) => setNewTeam({...newTeam, conference: e.target.value})}
-                      placeholder="Eastern"
-                    />
+                    <Select 
+                      value={newTeam.conference_id} 
+                      onValueChange={(value) => handleConferenceChange(value)}
+                      disabled={!newTeam.league_id}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select conference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableConferences.map(conference => (
+                          <SelectItem key={conference.id} value={conference.id}>
+                            {conference.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="division">Division</Label>
-                    <Input
-                      id="division"
-                      value={newTeam.division}
-                      onChange={(e) => setNewTeam({...newTeam, division: e.target.value})}
-                      placeholder="Metropolitan"
-                    />
+                    <Select 
+                      value={newTeam.division_id} 
+                      onValueChange={(value) => setNewTeam({...newTeam, division_id: value})}
+                      disabled={!newTeam.conference_id}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select division" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableDivisions.map(division => (
+                          <SelectItem key={division.id} value={division.id}>
+                            {division.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <Button onClick={handleCreateTeam} className="w-full">
@@ -566,9 +693,9 @@ export default function TeamManagement() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {team.conference && <div>Conf: {team.conference}</div>}
-                        {team.division && <div>Div: {team.division}</div>}
-                        {!team.conference && !team.division && <span className="text-muted-foreground">None</span>}
+                        {team.conference_name && <div>Conf: {team.conference_name}</div>}
+                        {team.division_name && <div>Div: {team.division_name}</div>}
+                        {!team.conference_name && !team.division_name && <span className="text-muted-foreground">None</span>}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -667,19 +794,40 @@ export default function TeamManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="edit_conference">Conference</Label>
-                  <Input
-                    id="edit_conference"
-                    value={editForm.conference}
-                    onChange={(e) => setEditForm({...editForm, conference: e.target.value})}
-                  />
+                  <Select 
+                    value={editForm.conference_id} 
+                    onValueChange={(value) => handleConferenceChange(value, true)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select conference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableConferences.map(conference => (
+                        <SelectItem key={conference.id} value={conference.id}>
+                          {conference.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="edit_division">Division</Label>
-                  <Input
-                    id="edit_division"
-                    value={editForm.division}
-                    onChange={(e) => setEditForm({...editForm, division: e.target.value})}
-                  />
+                  <Select 
+                    value={editForm.division_id} 
+                    onValueChange={(value) => setEditForm({...editForm, division_id: value})}
+                    disabled={!editForm.conference_id}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select division" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableDivisions.map(division => (
+                        <SelectItem key={division.id} value={division.id}>
+                          {division.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <Button onClick={handleUpdateTeam} className="w-full">

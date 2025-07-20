@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -108,68 +109,33 @@ export default function PlayerProfile() {
           league_type: playerData.leagues?.league_type,
         });
         
-        // Fetch career stats
-        try {
-          const { data: statsData, error: statsError } = await supabase
-            .from('player_career_stats')
-            .select('*')
-            .eq('player_id', playerId)
-            .order('season_year', { ascending: true });
-
-          if (!statsError && statsData && statsData.length > 0) {
-            setCareerStats(statsData);
-          } else {
-            // Set default stats for any error or no data
-            setCareerStats([{
-              season_year: 2025, // Current season
-              team_name: playerData.teams?.name || 'Free Agent',
-              league_type: playerData.leagues?.league_type || 'pro',
-              games_played: 0,
-              goals: 0,
-              assists: 0,
-              points: 0,
-              plus_minus: 0,
-              penalty_minutes: 0,
-              shots: 0,
-              shooting_percentage: 0,
-              powerplay_points: 0,
-              shorthanded_points: 0,
-              game_winning_goals: 0,
-              games_started: 0,
-              wins: 0,
-              losses: 0,
-              overtime_losses: 0,
-              shutouts: 0,
-              save_percentage: 0,
-              goals_against_average: 0
-            }]);
-          }
-        } catch (statsError) {
-          // Silently handle career stats error and show zeros
-          setCareerStats([{
-            season_year: 2025,
-            team_name: playerData.teams?.name || 'Free Agent',
-            league_type: playerData.leagues?.league_type || 'pro',
-            games_played: 0,
-            goals: 0,
-            assists: 0,
-            points: 0,
-            plus_minus: 0,
-            penalty_minutes: 0,
-            shots: 0,
-            shooting_percentage: 0,
-            powerplay_points: 0,
-            shorthanded_points: 0,
-            game_winning_goals: 0,
-            games_started: 0,
-            wins: 0,
-            losses: 0,
-            overtime_losses: 0,
-            shutouts: 0,
-            save_percentage: 0,
-            goals_against_average: 0
-          }]);
-        }
+        // For now, we'll create placeholder career stats since the table may not exist yet
+        // This can be replaced with actual database queries once the player_career_stats table is properly set up
+        const defaultStats: CareerStats = {
+          season_year: 2025,
+          team_name: playerData.teams?.name || 'Free Agent',
+          league_type: playerData.leagues?.league_type || 'pro',
+          games_played: 0,
+          goals: 0,
+          assists: 0,
+          points: 0,
+          plus_minus: 0,
+          penalty_minutes: 0,
+          shots: 0,
+          shooting_percentage: 0,
+          powerplay_points: 0,
+          shorthanded_points: 0,
+          game_winning_goals: 0,
+          games_started: 0,
+          wins: 0,
+          losses: 0,
+          overtime_losses: 0,
+          shutouts: 0,
+          save_percentage: 0,
+          goals_against_average: 0
+        };
+        
+        setCareerStats([defaultStats]);
       }
     } catch (error: any) {
       console.error('Error loading player:', error);
