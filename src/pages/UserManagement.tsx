@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -232,7 +233,7 @@ export default function UserManagement() {
         toast({
           title: errorMessage,
           description: errorDetails,
-          variant: "destructive"
+          variant: "destructive"  
         });
         
         return;
@@ -385,13 +386,6 @@ export default function UserManagement() {
             <p className="text-muted-foreground">Create, invite, and manage users and GMs for your leagues</p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleDebugTest}
-              className="btn-hockey-outline"
-            >
-              Test Edge Function
-            </Button>
             <Button
               variant="outline"
               onClick={loadData}

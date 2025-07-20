@@ -1,4 +1,6 @@
-import { supabase } from '@/integrations/supabase/client';
+
+// Simplified notification utilities that don't rely on database storage
+// This provides a working notifications system without requiring additional DB setup
 
 export interface NotificationData {
   title: string;
@@ -7,71 +9,6 @@ export interface NotificationData {
   action_url?: string;
   action_label?: string;
 }
-
-/**
- * Create a new notification for the current user
- */
-export const createNotification = async (notification: NotificationData) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error('No authenticated user');
-    }
-
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: user.id,
-        ...notification
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return data;
-  } catch (error) {
-    console.error('Error creating notification:', error);
-    throw error;
-  }
-};
-
-/**
- * Mark a notification as read
- */
-export const markNotificationAsRead = async (notificationId: string) => {
-  try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', notificationId);
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    throw error;
-  }
-};
-
-/**
- * Get unread notification count for current user
- */
-export const getUnreadNotificationCount = async () => {
-  try {
-    const { count, error } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_read', false);
-
-    if (error) throw error;
-
-    return count || 0;
-  } catch (error) {
-    console.error('Error getting unread count:', error);
-    return 0;
-  }
-};
 
 /**
  * Sample notifications for different scenarios
@@ -143,31 +80,45 @@ export const SAMPLE_NOTIFICATIONS = {
     title: 'Backup Complete',
     message: 'Your dynasty data has been successfully backed up to secure storage.',
     type: 'system' as const
+  }),
+
+  userCreated: (userName: string, role: string) => ({
+    title: 'User Created Successfully',
+    message: `${userName} has been created with ${role} role and can now access the system.`,
+    type: 'success' as const,
+    action_url: '/admin/users',
+    action_label: 'View Users'
   })
 };
 
 /**
- * Create sample notifications for testing
+ * Get sample notifications for demo purposes
  */
-export const createSampleNotifications = async () => {
-  const samples = [
-    SAMPLE_NOTIFICATIONS.playerGenerated('Connor McDavid', 'Edmonton Oilers'),
-    SAMPLE_NOTIFICATIONS.seasonComplete('2024-25'),
-    SAMPLE_NOTIFICATIONS.contractExpiring('Sidney Crosby', 30),
-    SAMPLE_NOTIFICATIONS.tradeProposal('Toronto Maple Leafs', 'Montreal Canadiens'),
-    SAMPLE_NOTIFICATIONS.injuryReport('Alex Ovechkin', 'lower body injury'),
-    SAMPLE_NOTIFICATIONS.draftComplete(2025),
-    SAMPLE_NOTIFICATIONS.leagueCreated('National Hockey League'),
-    SAMPLE_NOTIFICATIONS.systemMaintenance(),
-    SAMPLE_NOTIFICATIONS.backupComplete()
-  ];
-
-  try {
-    for (const notification of samples) {
-      await createNotification(notification);
+export const getSampleNotifications = () => {
+  return [
+    { 
+      id: '1', 
+      ...SAMPLE_NOTIFICATIONS.userCreated('John Doe', 'GM'),
+      is_read: false,
+      created_at: new Date().toISOString()
+    },
+    { 
+      id: '2', 
+      ...SAMPLE_NOTIFICATIONS.seasonComplete('2024-25'),
+      is_read: false,
+      created_at: new Date(Date.now() - 3600000).toISOString()
+    },
+    { 
+      id: '3', 
+      ...SAMPLE_NOTIFICATIONS.contractExpiring('Connor McDavid', 30),
+      is_read: true,
+      created_at: new Date(Date.now() - 7200000).toISOString()
+    },
+    { 
+      id: '4', 
+      ...SAMPLE_NOTIFICATIONS.systemMaintenance(),
+      is_read: true,
+      created_at: new Date(Date.now() - 86400000).toISOString()
     }
-    console.log('Sample notifications created successfully');
-  } catch (error) {
-    console.error('Error creating sample notifications:', error);
-  }
+  ];
 };

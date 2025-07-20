@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Bell, X, Check, Info, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { getSampleNotifications } from '@/lib/notificationUtils';
 
 interface Notification {
   id: string;
@@ -37,99 +38,27 @@ export function NotificationsDropdown() {
 
   const loadNotifications = async () => {
     try {
-      // Try to get real notifications first
-      const { data, error } = await supabase
-        .rpc('get_user_notifications')
-        .limit(20);
-
-      if (error || !data || data.length === 0) {
-        // If no real notifications or error, get sample notifications
-        const { data: sampleData, error: sampleError } = await supabase
-          .rpc('get_sample_notifications');
-
-        if (sampleError) {
-          console.warn('Failed to get sample notifications:', sampleError);
-          setSampleNotifications();
-          return;
-        }
-
-        setNotifications(sampleData || []);
-        setUnreadCount((sampleData || []).filter((n: any) => !n.is_read).length);
-      } else {
-        setNotifications(data || []);
-        setUnreadCount((data || []).filter((n: any) => !n.is_read).length);
-      }
+      // For now, use sample notifications since the database notifications aren't set up
+      const sampleNotifications = getSampleNotifications();
+      setNotifications(sampleNotifications);
+      setUnreadCount(sampleNotifications.filter(n => !n.is_read).length);
     } catch (error) {
       console.error('Error loading notifications:', error);
-      // Fallback to sample data
-      setSampleNotifications();
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  const setSampleNotifications = () => {
-    const sampleData = [
-      {
-        id: '1',
-        title: 'Welcome to Puck Dynasty!',
-        message: 'Your dynasty simulation is ready. Start by creating leagues and generating players.',
-        type: 'info',
-        is_read: false,
-        action_url: '/league-creation',
-        action_label: 'Create League',
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        title: 'Season Simulation Complete',
-        message: 'The 2024-25 regular season has finished. Playoffs are ready to begin!',
-        type: 'success',
-        is_read: false,
-        action_url: '/simulation-engine',
-        action_label: 'Start Playoffs',
-        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      },
-      {
-        id: '3',
-        title: 'Player Contract Expiring',
-        message: 'Connor McDavid\'s contract expires in 30 days. Consider renewal negotiations.',
-        type: 'warning',
-        is_read: true,
-        action_url: '/player-management',
-        action_label: 'View Players',
-        created_at: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-      },
-      {
-        id: '4',
-        title: 'Database Backup Complete',
-        message: 'Your dynasty data has been successfully backed up.',
-        type: 'system',
-        is_read: true,
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      }
-    ];
-    setNotifications(sampleData);
-    setUnreadCount(sampleData.filter(n => !n.is_read).length);
-  };
-
   const markAsRead = async (notificationId: string) => {
     try {
-      // For sample data, just update locally
       setNotifications(prev => 
         prev.map(n => 
           n.id === notificationId ? { ...n, is_read: true } : n
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-
-      // Try to update in database if possible
-      const { error } = await supabase
-        .rpc('mark_notification_read', { notification_id: notificationId });
-
-      if (error) {
-        console.log('Could not update notification in database (using sample data):', error);
-      }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -146,14 +75,6 @@ export function NotificationsDropdown() {
         title: "Success",
         description: "All notifications marked as read"
       });
-
-      // Try to update in database if possible
-      const { error } = await supabase
-        .rpc('mark_all_notifications_read');
-
-      if (error) {
-        console.log('Could not update notifications in database (using sample data):', error);
-      }
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
@@ -166,14 +87,6 @@ export function NotificationsDropdown() {
       
       if (notification && !notification.is_read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-
-      // Try to delete from database if possible
-      const { error } = await supabase
-        .rpc('delete_notification', { notification_id: notificationId });
-
-      if (error) {
-        console.log('Could not delete notification from database (using sample data):', error);
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -286,7 +199,7 @@ export function NotificationsDropdown() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Badge 
-                                variant={getNotificationBadgeVariant(notification.type)}
+                                variant={getNotificationBadgeVariant(notification.type) as any}
                                 className="text-xs"
                               >
                                 {notification.type}
