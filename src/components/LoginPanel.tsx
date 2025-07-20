@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield, Users } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface LoginPanelProps {
   onSuccess?: () => void;
@@ -18,6 +20,8 @@ const LoginPanel = ({ onSuccess }: LoginPanelProps) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const { toast } = useToast();
+  const { getRoleBasedRedirect } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +43,13 @@ const LoginPanel = ({ onSuccess }: LoginPanelProps) => {
         title: "Welcome back!",
         description: "You have been logged in successfully.",
       });
+      
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        const redirectPath = getRoleBasedRedirect();
+        navigate(redirectPath);
+      }, 100);
+      
       onSuccess?.();
     }
     setLoading(false);

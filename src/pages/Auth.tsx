@@ -47,7 +47,12 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have been logged in successfully.",
       });
-      // Navigation will be handled by useEffect when userRole is loaded
+      
+      // Small delay to ensure auth state is updated, then redirect will happen via useEffect
+      setTimeout(() => {
+        const redirectPath = getRoleBasedRedirect();
+        navigate(redirectPath);
+      }, 100);
     }
     setLoading(false);
   };
