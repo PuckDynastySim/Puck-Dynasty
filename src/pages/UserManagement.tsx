@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,7 +95,12 @@ export default function UserManagement() {
       
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
-        throw new Error(`Failed to load profiles: ${profilesError.message}`);
+        toast({
+          title: "Error Loading Profiles",
+          description: profilesError.message,
+          variant: "destructive"
+        });
+        return;
       }
       
       console.log('Profiles loaded:', profiles?.length || 0);
@@ -109,7 +113,12 @@ export default function UserManagement() {
       
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
-        throw new Error(`Failed to load user roles: ${rolesError.message}`);
+        toast({
+          title: "Error Loading Roles",
+          description: rolesError.message,
+          variant: "destructive"
+        });
+        return;
       }
       
       console.log('User roles loaded:', userRoles?.length || 0);
@@ -163,8 +172,8 @@ export default function UserManagement() {
       setLeagues(leaguesData || []);
       
       toast({
-        title: "Data Loaded",
-        description: `Successfully loaded ${usersWithRoles.length} users, ${teamsData?.length || 0} teams`
+        title: "Data Loaded Successfully",
+        description: `Loaded ${usersWithRoles.length} users, ${teamsData?.length || 0} teams`
       });
       
     } catch (error: any) {
@@ -176,44 +185,6 @@ export default function UserManagement() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDebugTest = async () => {
-    try {
-      console.log('Testing Edge Function with debug mode...');
-      
-      const { data, error } = await supabase.functions.invoke('create-admin-user', {
-        body: {
-          email: 'debug@test.com',
-          password: 'debug123',
-          display_name: 'Debug Test',
-          role: 'user',
-          debug: true // Enable debug mode
-        }
-      });
-
-      console.log('Debug test response:', { data, error });
-
-      if (error) {
-        toast({
-          title: "Debug Test Failed",
-          description: `Error: ${error.message}`,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Debug Test Success",
-          description: `Environment check passed. Check console for details.`,
-        });
-      }
-    } catch (error: any) {
-      console.error('Debug test error:', error);
-      toast({
-        title: "Debug Test Error",
-        description: error.message || "Unknown error occurred",
-        variant: "destructive"
-      });
     }
   };
 
@@ -253,7 +224,6 @@ export default function UserManagement() {
         let errorMessage = "Failed to create user";
         let errorDetails = error.message || "Unknown error occurred";
         
-        // Check for function execution error with debug info
         if (data?.error) {
           errorMessage = data.error;
           errorDetails = data.debug || data.details || "No additional details available";
@@ -303,8 +273,10 @@ export default function UserManagement() {
       setCreateUserOpen(false);
       setNewUser({ email: "", display_name: "", password: "", role: "gm" });
       
-      // Reload data to show the new user
-      await loadData();
+      // Add a small delay before reloading to ensure database consistency
+      setTimeout(() => {
+        loadData();
+      }, 1000);
       
     } catch (error: any) {
       console.error('Unexpected error creating user:', error);
@@ -558,7 +530,14 @@ export default function UserManagement() {
             {users.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No users found. Try refreshing the data or check your permissions.</p>
+                <p>No users found. Create a new user to get started.</p>
+                <Button
+                  onClick={() => setCreateUserOpen(true)}
+                  className="mt-4 btn-hockey"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create First User
+                </Button>
               </div>
             ) : (
               <Table>

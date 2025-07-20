@@ -910,6 +910,7 @@ export type Database = {
           fighting: number | null
           first_name: string
           flexibility: number | null
+          height: number | null
           id: string
           injury: number | null
           last_name: string
@@ -927,6 +928,7 @@ export type Database = {
           team_id: string | null
           updated_at: string | null
           vision: number | null
+          weight: number | null
         }
         Insert: {
           age: number
@@ -939,6 +941,7 @@ export type Database = {
           fighting?: number | null
           first_name: string
           flexibility?: number | null
+          height?: number | null
           id?: string
           injury?: number | null
           last_name: string
@@ -956,6 +959,7 @@ export type Database = {
           team_id?: string | null
           updated_at?: string | null
           vision?: number | null
+          weight?: number | null
         }
         Update: {
           age?: number
@@ -968,6 +972,7 @@ export type Database = {
           fighting?: number | null
           first_name?: string
           flexibility?: number | null
+          height?: number | null
           id?: string
           injury?: number | null
           last_name?: string
@@ -985,6 +990,7 @@ export type Database = {
           team_id?: string | null
           updated_at?: string | null
           vision?: number | null
+          weight?: number | null
         }
         Relationships: [
           {

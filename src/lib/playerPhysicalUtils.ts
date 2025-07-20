@@ -1,114 +1,102 @@
+
 /**
- * Utility functions for player height and weight formatting and generation
+ * Utility functions for handling player physical attributes
  */
 
 /**
- * Convert height in inches to feet and inches format
- * @param inches - Height in inches
- * @returns Formatted string like "6'2""
+ * Convert height in inches to feet and inches display format
+ * @param inches Height in inches
+ * @returns Formatted string like "6'2"" or "-" if no height
  */
-export const formatHeight = (inches: number): string => {
+export const formatHeight = (inches?: number): string => {
+  if (!inches || inches <= 0) return '-';
+  
   const feet = Math.floor(inches / 12);
   const remainingInches = inches % 12;
+  
   return `${feet}'${remainingInches}"`;
 };
 
 /**
- * Convert height from feet and inches to total inches
- * @param feet - Number of feet
- * @param inches - Number of inches
- * @returns Total height in inches
+ * Format weight for display
+ * @param weight Weight in pounds
+ * @returns Formatted string like "180 lbs" or "-" if no weight
  */
-export const heightToInches = (feet: number, inches: number): number => {
-  return feet * 12 + inches;
-};
-
-/**
- * Format weight with "lbs" suffix
- * @param weight - Weight in pounds
- * @returns Formatted string like "185 lbs"
- */
-export const formatWeight = (weight: number): string => {
+export const formatWeight = (weight?: number): string => {
+  if (!weight || weight <= 0) return '-';
+  
   return `${weight} lbs`;
 };
 
 /**
- * Generate realistic height and weight based on hockey position
+ * Generate realistic height for a hockey player based on position
+ * @param position Player position
+ * @returns Height in inches
  */
-export const generatePhysicalStats = (position: string) => {
-  let heightRange: { min: number; max: number };
-  let weightRange: { min: number; max: number };
-
-  switch (position) {
-    case 'G': // Goalies
-      heightRange = { min: 72, max: 76 }; // 6'0" to 6'4"
-      weightRange = { min: 180, max: 220 };
-      break;
-    case 'D': // Defensemen
-      heightRange = { min: 70, max: 75 }; // 5'10" to 6'3"
-      weightRange = { min: 190, max: 230 };
-      break;
-    case 'C': // Centers
-    case 'LW': // Left Wing
-    case 'RW': // Right Wing
-    default: // Forwards
-      heightRange = { min: 68, max: 74 }; // 5'8" to 6'2"
-      weightRange = { min: 170, max: 210 };
-      break;
-  }
-
-  // Generate height with normal distribution (bell curve)
-  const heightMean = (heightRange.min + heightRange.max) / 2;
-  const heightStdDev = (heightRange.max - heightRange.min) / 6; // 99.7% within range
-  let height = Math.round(normalRandom(heightMean, heightStdDev));
-  height = Math.max(heightRange.min, Math.min(heightRange.max, height));
-
-  // Generate weight based on height with some variation
-  // Taller players tend to be heavier, but with variation
-  const heightFactor = (height - heightRange.min) / (heightRange.max - heightRange.min);
-  const baseWeight = weightRange.min + (weightRange.max - weightRange.min) * heightFactor;
-  const weightVariation = 15; // +/- 15 lbs variation
-  let weight = Math.round(baseWeight + (Math.random() - 0.5) * 2 * weightVariation);
-  weight = Math.max(weightRange.min, Math.min(weightRange.max, weight));
-
-  return { height, weight };
-};
-
-/**
- * Generate a random number with normal (Gaussian) distribution
- * Uses Box-Muller transformation
- */
-function normalRandom(mean: number, stdDev: number): number {
-  let u = 0, v = 0;
-  while(u === 0) u = Math.random(); // Converting [0,1) to (0,1)
-  while(v === 0) v = Math.random();
+export const generateHeight = (position: 'C' | 'LW' | 'RW' | 'D' | 'G'): number => {
+  let minHeight: number;
+  let maxHeight: number;
   
-  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  return z * stdDev + mean;
-}
-
-/**
- * Get BMI category for a player (optional, for future use)
- * @param heightInches - Height in inches
- * @param weightLbs - Weight in pounds
- * @returns BMI value
- */
-export const calculateBMI = (heightInches: number, weightLbs: number): number => {
-  const heightMeters = heightInches * 0.0254;
-  const weightKg = weightLbs * 0.453592;
-  return weightKg / (heightMeters * heightMeters);
+  switch (position) {
+    case 'G': // Goalies - typically taller
+      minHeight = 72; // 6'0"
+      maxHeight = 76; // 6'4"
+      break;
+    case 'D': // Defensemen - generally taller
+      minHeight = 70; // 5'10"
+      maxHeight = 75; // 6'3"
+      break;
+    case 'C':
+    case 'LW':
+    case 'RW': // Forwards - more varied
+      minHeight = 68; // 5'8"
+      maxHeight = 74; // 6'2"
+      break;
+    default:
+      minHeight = 68;
+      maxHeight = 74;
+  }
+  
+  return Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
 };
 
 /**
- * Validate height is within realistic hockey player range
+ * Generate realistic weight for a hockey player based on position and height
+ * @param position Player position
+ * @param height Height in inches
+ * @returns Weight in pounds
  */
-export const isValidHeight = (inches: number): boolean => {
-  return inches >= 60 && inches <= 84; // 5'0" to 7'0"
-};
-
-/**
- * Validate weight is within realistic hockey player range
- */
-export const isValidWeight = (pounds: number): boolean => {
-  return pounds >= 140 && pounds <= 280;
+export const generateWeight = (position: 'C' | 'LW' | 'RW' | 'D' | 'G', height: number): number => {
+  let baseWeight: number;
+  let variance: number;
+  
+  // Base weight calculation based on height
+  const heightFactor = (height - 68) * 3; // 3 lbs per inch above 5'8"
+  
+  switch (position) {
+    case 'G': // Goalies - heavier with padding consideration
+      baseWeight = 185 + heightFactor;
+      variance = 25;
+      break;
+    case 'D': // Defensemen - generally heavier
+      baseWeight = 190 + heightFactor;
+      variance = 30;
+      break;
+    case 'C':
+    case 'LW':
+    case 'RW': // Forwards - more varied
+      baseWeight = 175 + heightFactor;
+      variance = 25;
+      break;
+    default:
+      baseWeight = 180 + heightFactor;
+      variance = 25;
+  }
+  
+  // Add random variance
+  const randomVariance = Math.floor(Math.random() * (variance * 2 + 1)) - variance;
+  const finalWeight = baseWeight + randomVariance;
+  
+  // Ensure reasonable bounds
+  return Math.max(160, Math.min(250, finalWeight));
 };
